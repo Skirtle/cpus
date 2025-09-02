@@ -21,7 +21,7 @@ int main(int argc, int* argv) {
     if (registers == NULL) return 1;
 
     if (DEBUG) {
-        printf("Initialized registers ");
+        printf("Initialized registers\n");
         print_registers(registers);
     }
 
@@ -29,6 +29,7 @@ int main(int argc, int* argv) {
     Register status_register;
     status_register.name = 'F';
     status_register.value = 0;
+    if (DEBUG) print_register(&status_register);
 
     free(registers);
     return 0;
@@ -51,9 +52,7 @@ Register* initialize_registers(char default_value) {
 
 void print_registers(Register* registers) {
     for (int i = 0; i < REGISTER_COUNT; i++) {
-        printf("%c = %d", registers[i].name, registers[i].value);
-        if (i != REGISTER_COUNT - 1) printf(", ");
-        else printf("\n");
+        print_register(&registers[i]);
     }
 }
 
