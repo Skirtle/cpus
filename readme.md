@@ -26,4 +26,5 @@
 * 110  - M
 
 #### Sources
-* [Encodings](http://dunfield.classiccmp.org//r/8080.txt?utm_source=chatgpt.com)
+* [Encodings](http://dunfield.classiccmp.org//r/8080.txt)
+
