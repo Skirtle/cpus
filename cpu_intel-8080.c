@@ -45,10 +45,35 @@ uint8_register* get_register_ptr(CPU* cpu, uint8_t reg);
 
 
 // Opcode functions
+void NOP(CPU* cpu, uint8_t opcode);
 void HLT(CPU* cpu, uint8_t opcode);
+
+// // Data management (8-bit only)
 void MVI(CPU* cpu, uint8_t opcode);
 void MOV(CPU* cpu, uint8_t opcode);
-void NOP(CPU* cpu, uint8_t opcode);
+
+// Arithmetic and logic opcodes (8-bit only)
+void ADD(CPU* cpu, uint8_t opcode);	// Add register to A
+void ADI(CPU* cpu, uint8_t opcode);	// Add immediate to A
+void ADC(CPU* cpu, uint8_t opcode);	// Add register to A with carry
+void ACI(CPU* cpu, uint8_t opcode);	// Add immediate to A with carry
+
+void SUB(CPU* cpu, uint8_t opcode); // Subtract register from A
+void SUI(CPU* cpu, uint8_t opcode); // Subtract immediate from A
+void SBB(CPU* cpu, uint8_t opcode); // Subtract register from A with borrow
+void SBI(CPU* cpu, uint8_t opcode); // Subtract immediate from A with borrow
+
+void INR(CPU* cpu, uint8_t opcode); // Increment register
+void DCR(CPU* cpu, uint8_t opcode); // Decrement register
+
+void ANA(CPU* cpu, uint8_t opcode); // AND register with A
+void ANI(CPU* cpu, uint8_t opcode); // AND immediate with A
+void ORA(CPU* cpu, uint8_t opcode); // OR register with A
+void ORI(CPU* cpu, uint8_t opcode); // OR immediate with A
+void XRA(CPU* cpu, uint8_t opcode); // ExclusiveOR register with A
+void XRI(CPU* cpu, uint8_t opcode); // ExclusiveOR immediate with A
+void CMP(CPU* cpu, uint8_t opcode); // Compare register with A
+void CPI(CPU* cpu, uint8_t opcode); // Compare immediate with A
 
 // Start!
 int main(int argc, char* argv[]) {
@@ -260,9 +285,21 @@ void initialize_opcode_lookup() {
 }
 
 // Opcode function defenitions
+void NOP(CPU* cpu, uint8_t opcode) {
+    if (DEBUG) printf("NOP\n");
+}
 void HLT(CPU* cpu, uint8_t opcode) { 
     cpu->running = false;
     if (DEBUG) printf("HLT\n");
+}
+
+// Data management
+void MOV(CPU* cpu, uint8_t opcode) {
+    uint8_register* dest_ptr = get_register_ptr(cpu, (opcode >> 3) & 7);
+    uint8_register* src_ptr = get_register_ptr(cpu, opcode & 7);
+    dest_ptr->value = src_ptr->value;
+    if (DEBUG) printf("MOV %c, %c\n", dest_ptr->name, src_ptr->name);
+    update_uint16_registers(cpu);
 }
 void MVI(CPU* cpu, uint8_t opcode) {
     int reg_number = (opcode >> 3) & 7;
@@ -277,16 +314,29 @@ void MVI(CPU* cpu, uint8_t opcode) {
     update_uint16_registers(cpu);
 
 }
-void MOV(CPU* cpu, uint8_t opcode) {
-    uint8_register* dest_ptr = get_register_ptr(cpu, (opcode >> 3) & 7);
-    uint8_register* src_ptr = get_register_ptr(cpu, opcode & 7);
-    dest_ptr->value = src_ptr->value;
-    if (DEBUG) printf("MOV %c, %c\n", dest_ptr->name, src_ptr->name);
-    update_uint16_registers(cpu);
-}
-void NOP(CPU* cpu, uint8_t opcode) {
-    if (DEBUG) printf("NOP\n");
-}
+
+// Arithmetic and logic opcodes (8-bit only)
+void ADD(CPU* cpu, uint8_t opcode) {}	// Add register to A
+void ADI(CPU* cpu, uint8_t opcode) {}	// Add immediate to A
+void ADC(CPU* cpu, uint8_t opcode) {}	// Add register to A with carry
+void ACI(CPU* cpu, uint8_t opcode) {}	// Add immediate to A with carry
+
+void SUB(CPU* cpu, uint8_t opcode) {} // Subtract register from A
+void SUI(CPU* cpu, uint8_t opcode) {} // Subtract immediate from A
+void SBB(CPU* cpu, uint8_t opcode) {} // Subtract register from A with borrow
+void SBI(CPU* cpu, uint8_t opcode) {} // Subtract immediate from A with borrow
+
+void INR(CPU* cpu, uint8_t opcode) {} // Increment register
+void DCR(CPU* cpu, uint8_t opcode) {} // Decrement register
+
+void ANA(CPU* cpu, uint8_t opcode) {} // AND register with A
+void ANI(CPU* cpu, uint8_t opcode) {} // AND immediate with A
+void ORA(CPU* cpu, uint8_t opcode) {} // OR register with A
+void ORI(CPU* cpu, uint8_t opcode) {} // OR immediate with A
+void XRA(CPU* cpu, uint8_t opcode) {} // ExclusiveOR register with A
+void XRI(CPU* cpu, uint8_t opcode) {} // ExclusiveOR immediate with A
+void CMP(CPU* cpu, uint8_t opcode) {} // Compare register with A
+void CPI(CPU* cpu, uint8_t opcode) {} // Compare immediate with A
 
 
 #endif
