@@ -278,10 +278,16 @@ void initialize_opcode_lookup() {
         opcode_lookup[opcode] = (Instruction) {name, MVI, 2};
     }
 
+    // Create all ADD opcodes
+    for (int i = 0; i <= 7; i++) {
+        uint8_t opcode = 128 + i;
+        char name[7] = "ADD ";
+        strcat(name, get_register_name(i));
+        opcode_lookup[opcode] = (Instruction) {name, ADD, 1};
+    }
+
     opcode_lookup[0x00] = (Instruction) {"NOP", NOP, 1};
     opcode_lookup[0x66] = (Instruction) {"HLT", HLT, 1};
-    // opcode_lookup[0x3E] = (Instruction) {"MVI_B", MVI, 2};
-    opcode_lookup[0x47] = (Instruction) {"MOV B, A", MOV, 1};
 
 }
 
@@ -299,15 +305,16 @@ void MOV(CPU* cpu, uint8_t opcode) {
     uint8_register* dest_ptr = get_register_ptr(cpu, (opcode >> 3) & 7);
     uint8_register* src_ptr = get_register_ptr(cpu, opcode & 7);
     dest_ptr->value = src_ptr->value;
-    if (DEBUG) printf("MOV %c, %c\t// Move value from register %c to register %c\n", dest_ptr->name, src_ptr->name, src_ptr->name, dest_ptr->name);
+    if (DEBUG) printf("MOV %c, %c\t// Copy value %d from register %c to register %c\n", dest_ptr->name, src_ptr->name, src_ptr->value,src_ptr->name, dest_ptr->name);
     update_uint16_registers(cpu);
 }
 void MVI(CPU* cpu, uint8_t opcode) {
     int reg_number = (opcode >> 3) & 7;
 
     uint8_register* dest_ptr = get_register_ptr(cpu, reg_number);
-    dest_ptr->value = cpu->memory[cpu->program_counter + 1];
-    if (DEBUG)  printf("MVI %c, %d\t// Move immediate value to register %c\n", dest_ptr->name, cpu->memory[cpu->program_counter + 1], dest_ptr->name);
+    int ival = cpu->memory[cpu->program_counter + 1];
+    dest_ptr->value = ival;
+    if (DEBUG) printf("MVI %c, %d\t// Copy immediate value %d to register %c\n", dest_ptr->name, ival, ival, dest_ptr->name);
 
     // TODO: Potentially update the register pair possibily affected by this move
     // Now to update any potential register pairs that could of changed from this
@@ -317,7 +324,12 @@ void MVI(CPU* cpu, uint8_t opcode) {
 }
 
 // Arithmetic and logic opcodes (8-bit only)
-void ADD(CPU* cpu, uint8_t opcode) {} // Add register to A
+void ADD(CPU* cpu, uint8_t opcode) { // Add register to A
+    // TODO: Add flag things
+    uint8_register* reg = get_register_ptr(cpu, opcode & 7);
+    cpu->A.value += reg->value;
+    if (DEBUG) printf("ADD %c\t\t// Add value %d from register %c to A\n", reg->name, reg->value, reg->name);
+}
 void ADI(CPU* cpu, uint8_t opcode) {} // Add immediate to A
 void ADC(CPU* cpu, uint8_t opcode) {} // Add register to A with carry
 void ACI(CPU* cpu, uint8_t opcode) {} // Add immediate to A with carry
