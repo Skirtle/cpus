@@ -10,50 +10,80 @@
 #define DEBUG true
 #define MAX_PROGRAM_SIZE 64
 
+
+// Structs
 typedef struct CPU {
     uint8_register A, B, C, D, E, H, L, status;
     uint16_register BC, DE, HL;
     uint16_t stack_pointer;
     uint16_t program_counter; 
     uint8_t memory[MAX_PROGRAM_SIZE];
+    bool running;
 } CPU;
 
 typedef struct Instruction {
-    char* mnemonic;
-    uint8_t size;
-    uint8_t cycles;
+    char* mnemonic; // For debugging
+    void (*execute)(CPU* cpu, uint8_t opcode);
+    uint8_t size; // Size of the instruction
 } Instruction;
 
+// Global variables
+Instruction opcode_lookup[256];
+
+// Function prototypes
 void initialize_uint8_register(uint8_register* reg, char c, uint8_t v);
 void initialize_uint16_register(uint16_register* reg, char* s, uint16_t v);
 void print_cpu_registers(CPU* cpu);
 void print_cpu_memory(CPU* cpu);
 void print_binary(uint8_t byte);
+void initialize_opcode_lookup();
+uint8_t fetch(CPU* cpu);
 int initialize_cpu(CPU* cpu, char* filename);
 
-// Data movement
-void MVI(uint8_t* dest, uint8_t immediate); // Move immedate to dest_reg
-void MOV(uint8_t* dest, uint8_t* src); // Move value from src_reg to dest_reg
-void LXI(CPU* cpu, char rp[2], uint16_t immediate); // Load 16-bit immediate into register pair (RP)
+// Opcode functions
+void HLT(CPU* cpu, uint8_t opcode);
+void MVI_B(CPU* cpu, uint8_t opcode);
 
+// Start!
 int main(int argc, char* argv[]) {
     char* filename;
+    bool running = true;
     if (argc == 1) filename = "program.asm";
     else filename = argv[1];
 
     CPU cpu;
-    if (initialize_cpu(&cpu, filename)) return 1; // Failed to initialize the CPU
+    int code = initialize_cpu(&cpu, filename);
+    if (code){ // Failed to initialize the CPU
+        printf("Failed to initalize CPU, exit code %d\n", code);
+        return 1;
+    } 
+    
+    if (DEBUG) printf("Initializing opcode lookup table");
+    initialize_opcode_lookup();
 
-    MVI(&cpu.A.value, 8);
+    if (DEBUG) {
+        printf("\nStarting conditions:\n");
+        print_cpu_registers(&cpu);
+        printf("\n");
+        print_cpu_memory(&cpu);
+        printf("\n");
+    }
 
-    if (DEBUG) print_cpu_registers(&cpu);
-    if (DEBUG) print_cpu_memory(&cpu);
-
+    printf("Starting FED loop\n");
+    // Fetch-decode-execute loop
+    while (cpu.running) {
+        uint8_t opcode = cpu.memory[cpu.program_counter];
+        Instruction inst = opcode_lookup[opcode];
+        if (DEBUG) printf("\n%s\n", inst.mnemonic);
+        inst.execute(&cpu, opcode);
+        cpu.program_counter += inst.size;
+    }
 
 
     return 0;
 }
 
+// Function defenitions
 void initialize_uint8_register(uint8_register* reg, char c, uint8_t v) {
     reg->name = c;
     reg->value = v;
@@ -92,7 +122,8 @@ int initialize_cpu(CPU* cpu, char* filename) {
     if (DEBUG) printf("Opened %s\n", filename);
     fread(cpu->memory, 1, sizeof(cpu->memory), file);
     fclose(file);
-
+    cpu->running = true;
+    return 0;
 }
 
 void print_cpu_registers(CPU* cpu) {
@@ -111,7 +142,7 @@ void print_cpu_registers(CPU* cpu) {
 
     printf("SP = %d, PC = %d\n", cpu->stack_pointer, cpu->program_counter);
     // TODO: Split the Status print into its multiple flags
-    printf("Status = %d\n", cpu->status.value); 
+    printf("Status = %d\nRunning = %d", cpu->status.value, cpu->running); 
 }
 
 void print_cpu_memory(CPU* cpu) {
@@ -121,7 +152,6 @@ void print_cpu_memory(CPU* cpu) {
         printf("%02x ", cpu->memory[i]);
         if (i % 8 == 7) printf("\n");
     }
-    printf("\n");
 }
 
 void print_binary(uint8_t byte) {
@@ -130,10 +160,20 @@ void print_binary(uint8_t byte) {
         int num = (byte >> i) & 1;
         printf("%d", num);
     }
-    printf("\n");
 }
 
-void MVI(uint8_t* dest, uint8_t immediate) { *dest = immediate; } 
-void MOV(uint8_t* dest, uint8_t* src) { *dest = *src; } 
+uint8_t fetch(CPU* cpu) { return cpu->memory[cpu->program_counter]; }
+
+// Opcode table
+void initialize_opcode_lookup() {
+    opcode_lookup[0x66] = (Instruction) {"HLT", HLT, 1};
+    opcode_lookup[62] = (Instruction) {"MVI_B", MVI_B, 2};
+}
+
+// Opcode function defenitions
+void HLT(CPU* cpu, uint8_t opcode) { cpu->running = false; }
+void MVI_B(CPU* cpu, uint8_t opcode) {
+
+}
 
 #endif
