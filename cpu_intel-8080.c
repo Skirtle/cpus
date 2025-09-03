@@ -103,6 +103,7 @@ int main(int argc, char* argv[]) {
 
     // Fetch-decode-execute loop
     while (cpu.running) {
+        if (cpu.program_counter >= MAX_PROGRAM_SIZE) cpu.program_counter = 0;
         uint8_t opcode = cpu.memory[cpu.program_counter];
         Instruction inst = opcode_lookup[opcode];
         inst.execute(&cpu, opcode);
@@ -259,6 +260,7 @@ void update_uint16_registers(CPU* cpu) {
 
 // Opcode table
 void initialize_opcode_lookup() {
+    int count = 0;
     // Create all MOV opcodes
     for (int i = 0x40; i <= 0x7F; i++) {
         char name[10] = "MOV ";
@@ -268,6 +270,7 @@ void initialize_opcode_lookup() {
         strcat(name, ", ");
         strcat(name, src_name);
         opcode_lookup[i] = (Instruction) {name, MOV, 1};
+        count++;
     }
 
     // Create all MVI opcodes
@@ -276,6 +279,7 @@ void initialize_opcode_lookup() {
         char name[7] = "MVI, ";
         strcat(name, get_register_name(i));
         opcode_lookup[opcode] = (Instruction) {name, MVI, 2};
+        count++;
     }
 
     // Create all ADD opcodes
@@ -284,10 +288,15 @@ void initialize_opcode_lookup() {
         char name[7] = "ADD ";
         strcat(name, get_register_name(i));
         opcode_lookup[opcode] = (Instruction) {name, ADD, 1};
+        count++;
     }
 
     opcode_lookup[0x00] = (Instruction) {"NOP", NOP, 1};
     opcode_lookup[0x66] = (Instruction) {"HLT", HLT, 1};
+
+    count += 2;
+
+    if (DEBUG) printf("\n%d/256 (%0.2f%%) opcodes implemented", count, (double) count / 2.56);
 
 }
 
