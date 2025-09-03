@@ -79,7 +79,7 @@ void CPI(CPU* cpu, uint8_t opcode); // Compare immediate with A
 int main(int argc, char* argv[]) {
     char* filename;
     bool running = true;
-    if (argc == 1) filename = "program.asm";
+    if (argc == 1) filename = "program.mc";
     else filename = argv[1];
 
     CPU cpu;
