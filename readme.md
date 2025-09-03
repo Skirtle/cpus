@@ -10,7 +10,7 @@
 * ccc  - Conditional
 
 ## Conventions in instruction encoding
-* db   - Data byte (16-bit)
+* db   - Data byte (8-bit)
 * lb   - Low byte of a 16-bit value
 * hb   - High byte of a 16-bit value
 * pa   - Port address (8-bit)

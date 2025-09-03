@@ -4,9 +4,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <stdbool.h>
 #include "registers.h"
 
-#define DEBUG 1
+#define DEBUG true
 #define MAX_PROGRAM_SIZE 64
 
 typedef struct CPU {
@@ -17,28 +18,40 @@ typedef struct CPU {
     uint8_t memory[MAX_PROGRAM_SIZE];
 } CPU;
 
+typedef struct Instruction {
+    char* mnemonic;
+    uint8_t size;
+    uint8_t cycles;
+} Instruction;
+
 void initialize_uint8_register(uint8_register* reg, char c, uint8_t v);
 void initialize_uint16_register(uint16_register* reg, char* s, uint16_t v);
-void initialize_cpu(CPU* cpu);
 void print_cpu_registers(CPU* cpu);
 void print_cpu_memory(CPU* cpu);
 void print_binary(uint8_t byte);
+void execute(CPU* cpu, Instruction inst);
+int initialize_cpu(CPU* cpu, char* filename);
+uint8_t fetch(CPU* cpu);
+Instruction decode(uint8_t opcode);
 
-int main(int argc, int* argv) {
-    char* filename = "program.asm";
-    FILE* file = fopen(filename, "r");
-    if (file == NULL) return 1;
+// Data movement
+void MVI(CPU* cpu, char dest_reg, uint8_t immediate); // Move immedate to dest_reg
+void MOV(CPU* cpu, char src_reg, char dest_reg); // Move value from src_reg to dest_reg
+void LXI(CPU* cpu, char rp[2], uint16_t immediate); // Load 16-bit immediate into register pair (RP)
 
+int main(int argc, char* argv[]) {
+    char* filename;
+    if (argc == 1) filename = "program.asm";
+    else filename = argv[1];
 
     CPU cpu;
-    initialize_cpu(&cpu);
+    if (initialize_cpu(&cpu, filename)) return 1; // Failed to initialize the CPU
+    if (DEBUG) print_cpu_registers(&cpu);
+    if (DEBUG) print_cpu_memory(&cpu);
 
-    fread(cpu.memory, 1, sizeof(cpu.memory), file);
 
-    // print_cpu_registers(&cpu);
-    // print_cpu_memory(&cpu);
 
-    fclose(file);
+
     return 0;
 }
 
@@ -52,7 +65,7 @@ void initialize_uint16_register(uint16_register* reg, char* s, uint16_t v) {
     reg->value = v;
 }
 
-void initialize_cpu(CPU* cpu) {
+int initialize_cpu(CPU* cpu, char* filename) {
     initialize_uint8_register(&cpu->A, 'A', 0);
     initialize_uint8_register(&cpu->B, 'B', 0);
     initialize_uint8_register(&cpu->C, 'C', 0);
@@ -73,6 +86,16 @@ void initialize_cpu(CPU* cpu) {
     for (int i = 0; i < MAX_PROGRAM_SIZE; i++) {
         cpu->memory[i] = 0;
     }
+
+    FILE* file = fopen(filename, "r");
+    if (file == NULL) {
+        printf("Could not open file %s\n", filename);
+        return 1;
+    }
+    if (DEBUG) printf("Opened %s\n", filename);
+    fread(cpu->memory, 1, sizeof(cpu->memory), file);
+    fclose(file);
+
 }
 
 void print_cpu_registers(CPU* cpu) {
@@ -111,6 +134,20 @@ void print_binary(uint8_t byte) {
         printf("%d", num);
     }
     printf("\n");
+}
+
+void execute(CPU* cpu, Instruction inst) {
+    return;
+}
+uint8_t fetch(CPU* cpu) {
+    return 0;
+}
+Instruction decode(uint8_t opcode) {
+    Instruction inst;
+    inst.mnemonic = "NOP";
+    inst.size = 0;
+    inst.cycles = 0;
+    return inst;
 }
 
 #endif
