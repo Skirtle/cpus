@@ -14,7 +14,26 @@ typedef struct CPU {
 
 void initialize_uint8_register(uint8_register* reg, char c, uint8_t v);
 void initialize_uint16_register(uint16_register* reg, char* s, uint16_t v);
+void initialize_cpu(CPU* cpu);
 void print_cpu(CPU* cpu);
+
+int main(int argc, int* argv) {
+    CPU cpu;
+    initialize_cpu(&cpu);
+
+    print_cpu(&cpu);
+    return 0;
+}
+
+void initialize_uint8_register(uint8_register* reg, char c, uint8_t v) {
+    reg->name = c;
+    reg->value = v;
+}
+
+void initialize_uint16_register(uint16_register* reg, char* s, uint16_t v) {
+    strcpy(reg->name, s);
+    reg->value = v;
+}
 
 void initialize_cpu(CPU* cpu) {
     initialize_uint8_register(&cpu->A, 'A', 0);
@@ -33,24 +52,6 @@ void initialize_cpu(CPU* cpu) {
     cpu->program_counter = 0;
 
     initialize_uint8_register(&cpu->L, 'S', 0);
-}
-
-int main(int argc, int* argv) {
-    CPU cpu;
-    initialize_cpu(&cpu);
-
-    print_cpu(&cpu);
-    return 0;
-}
-
-void initialize_uint8_register(uint8_register* reg, char c, uint8_t v) {
-    reg->name = c;
-    reg->value = v;
-}
-
-void initialize_uint16_register(uint16_register* reg, char* s, uint16_t v) {
-    strcpy(reg->name, s);
-    reg->value = v;
 }
 
 void print_cpu(CPU* cpu) {
