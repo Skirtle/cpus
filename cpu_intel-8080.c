@@ -43,6 +43,7 @@ int initialize_cpu(CPU* cpu, char* filename);
 // Opcode functions
 void HLT(CPU* cpu, uint8_t opcode);
 void MVI_B(CPU* cpu, uint8_t opcode);
+void MOV(CPU* cpu, uint8_t opcode);
 
 // Start!
 int main(int argc, char* argv[]) {
@@ -72,9 +73,10 @@ int main(int argc, char* argv[]) {
     printf("Starting FED loop\n");
     // Fetch-decode-execute loop
     while (cpu.running) {
+        printf("Starting loop\n");
         uint8_t opcode = cpu.memory[cpu.program_counter];
         Instruction inst = opcode_lookup[opcode];
-        if (DEBUG) printf("\n%s\n", inst.mnemonic);
+        if (DEBUG) printf("%s\n", inst.mnemonic);
         inst.execute(&cpu, opcode);
         cpu.program_counter += inst.size;
     }
@@ -167,13 +169,19 @@ uint8_t fetch(CPU* cpu) { return cpu->memory[cpu->program_counter]; }
 // Opcode table
 void initialize_opcode_lookup() {
     opcode_lookup[0x66] = (Instruction) {"HLT", HLT, 1};
-    opcode_lookup[62] = (Instruction) {"MVI_B", MVI_B, 2};
+    opcode_lookup[0x3E] = (Instruction) {"MVI_B", MVI_B, 2};
+    opcode_lookup[0x47] = (Instruction) {"MOV B, A", MOV, 1};
 }
 
 // Opcode function defenitions
 void HLT(CPU* cpu, uint8_t opcode) { cpu->running = false; }
 void MVI_B(CPU* cpu, uint8_t opcode) {
+    cpu->B.value = cpu->memory[cpu->stack_pointer + 1];
+    cpu->stack_pointer++;
+}
+void MOV(CPU* cpu, uint8_t opcode) {
 
 }
+
 
 #endif
