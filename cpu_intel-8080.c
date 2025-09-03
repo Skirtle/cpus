@@ -305,8 +305,8 @@ void MVI(CPU* cpu, uint8_t opcode) {
     int reg_number = (opcode >> 3) & 7;
 
     uint8_register* dest_ptr = get_register_ptr(cpu, reg_number);
-    dest_ptr->value = cpu->memory[cpu->stack_pointer + 1];
-    if (DEBUG)  printf("MVI %c, %d\n", dest_ptr->name, cpu->memory[cpu->stack_pointer + 1]);
+    dest_ptr->value = cpu->memory[cpu->program_counter + 1];
+    if (DEBUG)  printf("MVI %c, %d\n", dest_ptr->name, cpu->memory[cpu->program_counter + 1]);
 
     // TODO: Potentially update the register pair possibily affected by this move
     // Now to update any potential register pairs that could of changed from this
