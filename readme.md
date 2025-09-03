@@ -55,7 +55,7 @@
 | LDAX RP     | 00RP1010 *1       | -       | Load indirect through BC or DE        | No          |
 | STAX RP     | 00RP0010 *1       | -       | Store indirect through BC or DE       | No          |
 | XCHG        | 11101011          | -       | Exchange DE and HL content            | No          |
-| ADD S       | 10000SSS          | ZSPCA   | Add register to A                     | No          |
+| ADD S       | 10000SSS          | ZSPCA   | Add register to A                     | Partially   |
 | ADI #       | 11000110 db       | ZSCPA   | Add immediate to A                    | No          |
 | ADC S       | 10001SSS          | ZSCPA   | Add register to A with carry          | No          |
 | ACI #       | 11001110 db       | ZSCPA   | Add immediate to A with carry         | No          |
