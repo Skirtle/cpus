@@ -36,5 +36,11 @@ uint16_register uint8_to_uint16_register(uint8_register* reg_a, uint8_register* 
     reg_c.value = (((uint16_t) reg_a->value) << 8) | reg_b->value;
     return reg_c;
 }
+int16_register int8_to_int16_register(int8_register* reg_a, int8_register* reg_b) {
+    int16_register reg_c;
+    combine_names(reg_c.name, reg_a->name, reg_b->name);
+    reg_c.value = (((int16_t) reg_a->value) << 8) | reg_b->value;
+    return reg_c;
+}
 
 #endif
