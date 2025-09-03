@@ -9,6 +9,7 @@
 
 #define DEBUG true
 #define MAX_PROGRAM_SIZE 64
+#define MEMORY_WIDTH 8
 
 
 // Structs
@@ -185,10 +186,10 @@ void print_cpu_registers(CPU* cpu) {
 
 void print_cpu_memory(CPU* cpu) {
     for (int i = 0; i < MAX_PROGRAM_SIZE; i++) {
-        if (i % 8 == 0) printf("0x%08x\t", i);
+        if (i % MEMORY_WIDTH == 0) printf("0x%0*x\t", MEMORY_WIDTH, i);
 
         printf("%02x ", cpu->memory[i]);
-        if (i % 8 == 7) printf("\n");
+        if (i % MEMORY_WIDTH == MEMORY_WIDTH - 1) printf("\n");
     }
 }
 
