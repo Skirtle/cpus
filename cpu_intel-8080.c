@@ -7,24 +7,38 @@
 #include "registers.h"
 
 #define DEBUG 1
+#define MAX_PROGRAM_SIZE 64
 
 typedef struct CPU {
     uint8_register A, B, C, D, E, H, L, status;
     uint16_register BC, DE, HL;
     uint16_t stack_pointer;
     uint16_t program_counter; 
+    uint8_t memory[MAX_PROGRAM_SIZE];
 } CPU;
 
 void initialize_uint8_register(uint8_register* reg, char c, uint8_t v);
 void initialize_uint16_register(uint16_register* reg, char* s, uint16_t v);
 void initialize_cpu(CPU* cpu);
-void print_cpu(CPU* cpu);
+void print_cpu_registers(CPU* cpu);
+void print_cpu_memory(CPU* cpu);
 
 int main(int argc, int* argv) {
+    char* filename = "program.asm";
+    FILE* file = fopen(filename, "r");
+    if (file == NULL) return 1;
+
+
     CPU cpu;
     initialize_cpu(&cpu);
 
-    print_cpu(&cpu);
+    fread(cpu.memory, 1, sizeof(cpu.memory), file);
+    printf("\n%ld\n", sizeof(cpu.memory));
+
+    print_cpu_registers(&cpu);
+    print_cpu_memory(&cpu);
+
+    fclose(file);
     return 0;
 }
 
@@ -55,9 +69,13 @@ void initialize_cpu(CPU* cpu) {
     cpu->program_counter = 0;
 
     initialize_uint8_register(&cpu->L, 'S', 0);
+
+    for (int i = 0; i < MAX_PROGRAM_SIZE; i++) {
+        cpu->memory[i] = 0;
+    }
 }
 
-void print_cpu(CPU* cpu) {
+void print_cpu_registers(CPU* cpu) {
 
     printf("%c = %d, ", cpu->A.name, cpu->A.value);
     printf("%c = %d, ", cpu->B.name, cpu->B.value);
@@ -74,6 +92,16 @@ void print_cpu(CPU* cpu) {
     printf("SP = %d, PC = %d\n", cpu->stack_pointer, cpu->program_counter);
     // TODO: Split the Status print into its multiple flags
     printf("Status = %d\n", cpu->status.value); 
+}
+
+void print_cpu_memory(CPU* cpu) {
+    for (int i = 0; i < MAX_PROGRAM_SIZE; i++) {
+        if (i % 8 == 0) printf("0x%08x\t", i);
+
+        printf("%02x ", cpu->memory[i]);
+        if (i % 8 == 7) printf("\n");
+    }
+    printf("\n");
 }
 
 #endif
