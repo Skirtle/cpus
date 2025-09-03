@@ -286,11 +286,11 @@ void initialize_opcode_lookup() {
 
 // Opcode function defenitions
 void NOP(CPU* cpu, uint8_t opcode) {
-    if (DEBUG) printf("NOP\n");
+    if (DEBUG) printf("NOP\t\t// No operation\n");
 }
 void HLT(CPU* cpu, uint8_t opcode) { 
     cpu->running = false;
-    if (DEBUG) printf("HLT\n");
+    if (DEBUG) printf("HLT\t\t// Stop the CPU\n");
 }
 
 // Data management
@@ -298,7 +298,7 @@ void MOV(CPU* cpu, uint8_t opcode) {
     uint8_register* dest_ptr = get_register_ptr(cpu, (opcode >> 3) & 7);
     uint8_register* src_ptr = get_register_ptr(cpu, opcode & 7);
     dest_ptr->value = src_ptr->value;
-    if (DEBUG) printf("MOV %c, %c\n", dest_ptr->name, src_ptr->name);
+    if (DEBUG) printf("MOV %c, %c\t// Move value from register %c to register %c\n", dest_ptr->name, src_ptr->name, src_ptr->name, dest_ptr->name);
     update_uint16_registers(cpu);
 }
 void MVI(CPU* cpu, uint8_t opcode) {
@@ -306,7 +306,7 @@ void MVI(CPU* cpu, uint8_t opcode) {
 
     uint8_register* dest_ptr = get_register_ptr(cpu, reg_number);
     dest_ptr->value = cpu->memory[cpu->program_counter + 1];
-    if (DEBUG)  printf("MVI %c, %d\n", dest_ptr->name, cpu->memory[cpu->program_counter + 1]);
+    if (DEBUG)  printf("MVI %c, %d\t// Move immediate value to register %c\n", dest_ptr->name, cpu->memory[cpu->program_counter + 1], dest_ptr->name);
 
     // TODO: Potentially update the register pair possibily affected by this move
     // Now to update any potential register pairs that could of changed from this
