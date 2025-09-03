@@ -25,18 +25,14 @@ typedef struct Instruction {
 } Instruction;
 
 void initialize_uint8_register(uint8_register* reg, char c, uint8_t v);
-void initialize_uint16_register(uint16_register* reg, char* s, uint16_t v);
 void print_cpu_registers(CPU* cpu);
 void print_cpu_memory(CPU* cpu);
 void print_binary(uint8_t byte);
-void execute(CPU* cpu, Instruction inst);
 int initialize_cpu(CPU* cpu, char* filename);
-uint8_t fetch(CPU* cpu);
-Instruction decode(uint8_t opcode);
 
 // Data movement
-void MVI(CPU* cpu, char dest_reg, uint8_t immediate); // Move immedate to dest_reg
-void MOV(CPU* cpu, char src_reg, char dest_reg); // Move value from src_reg to dest_reg
+void MVI(uint8_t* dest, uint8_t immediate); // Move immedate to dest_reg
+void MOV(uint8_t* dest, uint8_t* src); // Move value from src_reg to dest_reg
 void LXI(CPU* cpu, char rp[2], uint16_t immediate); // Load 16-bit immediate into register pair (RP)
 
 int main(int argc, char* argv[]) {
@@ -46,9 +42,11 @@ int main(int argc, char* argv[]) {
 
     CPU cpu;
     if (initialize_cpu(&cpu, filename)) return 1; // Failed to initialize the CPU
+
+    MVI(&cpu.A.value, 8);
+
     if (DEBUG) print_cpu_registers(&cpu);
     if (DEBUG) print_cpu_memory(&cpu);
-
 
 
 
@@ -57,11 +55,6 @@ int main(int argc, char* argv[]) {
 
 void initialize_uint8_register(uint8_register* reg, char c, uint8_t v) {
     reg->name = c;
-    reg->value = v;
-}
-
-void initialize_uint16_register(uint16_register* reg, char* s, uint16_t v) {
-    strcpy(reg->name, s);
     reg->value = v;
 }
 
@@ -74,14 +67,8 @@ int initialize_cpu(CPU* cpu, char* filename) {
     initialize_uint8_register(&cpu->H, 'H', 0);
     initialize_uint8_register(&cpu->L, 'L', 0);
 
-    initialize_uint16_register(&cpu->BC, "BC", 0);
-    initialize_uint16_register(&cpu->DE, "DE", 0);
-    initialize_uint16_register(&cpu->HL, "HL", 0);
-
     cpu->stack_pointer = 0;
     cpu->program_counter = 0;
-
-    initialize_uint8_register(&cpu->L, 'S', 0);
 
     for (int i = 0; i < MAX_PROGRAM_SIZE; i++) {
         cpu->memory[i] = 0;
@@ -108,10 +95,6 @@ void print_cpu_registers(CPU* cpu) {
     printf("%c = %d, ", cpu->H.name, cpu->H.value);
     printf("%c = %d\n", cpu->L.name, cpu->L.value);
 
-    printf("%s = %d, ", cpu->BC.name, cpu->BC.value);
-    printf("%s = %d, ", cpu->DE.name, cpu->DE.value);
-    printf("%s = %d\n", cpu->HL.name, cpu->HL.value);
-
     printf("SP = %d, PC = %d\n", cpu->stack_pointer, cpu->program_counter);
     // TODO: Split the Status print into its multiple flags
     printf("Status = %d\n", cpu->status.value); 
@@ -136,18 +119,7 @@ void print_binary(uint8_t byte) {
     printf("\n");
 }
 
-void execute(CPU* cpu, Instruction inst) {
-    return;
-}
-uint8_t fetch(CPU* cpu) {
-    return 0;
-}
-Instruction decode(uint8_t opcode) {
-    Instruction inst;
-    inst.mnemonic = "NOP";
-    inst.size = 0;
-    inst.cycles = 0;
-    return inst;
-}
+void MVI(uint8_t* dest, uint8_t immediate) { *dest = immediate; } 
+void MOV(uint8_t* dest, uint8_t* src) { *dest = *src; } 
 
 #endif
