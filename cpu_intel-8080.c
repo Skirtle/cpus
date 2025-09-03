@@ -22,7 +22,7 @@ void initialize_uint16_register(uint16_register* reg, char* s, uint16_t v);
 void initialize_cpu(CPU* cpu);
 void print_cpu_registers(CPU* cpu);
 void print_cpu_memory(CPU* cpu);
-void print_binary(uint8_t* byte);
+void print_binary(uint8_t byte);
 
 int main(int argc, int* argv) {
     char* filename = "program.asm";
@@ -104,10 +104,10 @@ void print_cpu_memory(CPU* cpu) {
     printf("\n");
 }
 
-void print_binary(uint8_t* byte) {
+void print_binary(uint8_t byte) {
     printf("0b");
     for (int i = 7; i >= 0; i--) {
-        int num = (*byte >> i) & 1;
+        int num = (byte >> i) & 1;
         printf("%d", num);
     }
     printf("\n");
