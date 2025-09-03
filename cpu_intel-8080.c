@@ -1,3 +1,6 @@
+#ifndef INTEL_8080
+#define INTEL_8080
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -55,6 +58,7 @@ void initialize_cpu(CPU* cpu) {
 }
 
 void print_cpu(CPU* cpu) {
+
     printf("%c = %d, ", cpu->A.name, cpu->A.value);
     printf("%c = %d, ", cpu->B.name, cpu->B.value);
     printf("%c = %d, ", cpu->C.name, cpu->C.value);
@@ -71,3 +75,5 @@ void print_cpu(CPU* cpu) {
     // TODO: Split the Status print into its multiple flags
     printf("Status = %d\n", cpu->status.value); 
 }
+
+#endif
