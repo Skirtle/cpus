@@ -45,8 +45,8 @@
 
 | Instruction |      Encoding     |  Flags  |               Description             | Implemented |
 |:-----------:|:-----------------:|:-------:|:-------------------------------------:|:-----------:|
-| MOV D,S     | 01DDDSSS          | -       | Move register to register             | No          |
-| MVI D,#     | 00DDD110 db       | -       | Move immediate to register            | No          |
+| MOV D,S     | 01DDDSSS          | -       | Move register to register             | Yes         |
+| MVI D,#     | 00DDD110 db       | -       | Move immediate to register            | Yes         |
 | LXI RP,#    | 00RP0001 lb hb    | -       | Load register pair immediate          | No          |
 | LDA a       | 00111010 lb hb    | -       | Load A from memory                    | No          |
 | STA a       | 00110010 lb hb    | -       | Store A to memory                     | No          |
@@ -100,8 +100,8 @@
 | OUT p       | 11010011 pa       | -       | Write A to output port                | No          |
 | EI          | 11111011          | -       | Enable interrupts                     | No          |
 | DI          | 11110011          | -       | Disable interrupts                    | No          |
-| HLT         | 01110110          | -       | Halt processor                        | No          |
-| NOP         | 00000000          | -       | No operation                          | No          |
+| HLT         | 01110110          | -       | Halt processor                        | Yes         |
+| NOP         | 00000000          | -       | No operation                          | Yes         |
 
 ###### *1 - Only RP=00(BC) and 01(DE) are allowed for LDAX/STAX
 ###### *2 - RP=11 refers to PSW for PUSH/POP (cannot push/pop SP). When PSW is POP'd, ALL flags are affected

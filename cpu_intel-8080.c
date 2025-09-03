@@ -13,7 +13,7 @@
 
 // Structs
 typedef struct CPU {
-    uint8_register A, B, C, D, E, H, L, status;
+    uint8_register A, B, C, D, E, H, L, M, status;
     uint16_register BC, DE, HL;
     uint16_t stack_pointer;
     uint16_t program_counter; 
@@ -39,11 +39,14 @@ void print_binary(uint8_t byte);
 void initialize_opcode_lookup();
 uint8_t fetch(CPU* cpu);
 int initialize_cpu(CPU* cpu, char* filename);
+uint8_register* get_register_ptr(CPU* cpu, uint8_t reg);
+char* get_register_name(uint8_t reg);
 
 // Opcode functions
 void HLT(CPU* cpu, uint8_t opcode);
-void MVI_B(CPU* cpu, uint8_t opcode);
+void MVI(CPU* cpu, uint8_t opcode);
 void MOV(CPU* cpu, uint8_t opcode);
+void NOP(CPU* cpu, uint8_t opcode);
 
 // Start!
 int main(int argc, char* argv[]) {
@@ -70,17 +73,21 @@ int main(int argc, char* argv[]) {
         printf("\n");
     }
 
-    printf("Starting FED loop\n");
     // Fetch-decode-execute loop
     while (cpu.running) {
-        printf("Starting loop\n");
         uint8_t opcode = cpu.memory[cpu.program_counter];
         Instruction inst = opcode_lookup[opcode];
-        if (DEBUG) printf("%s\n", inst.mnemonic);
         inst.execute(&cpu, opcode);
         cpu.program_counter += inst.size;
     }
 
+    if (DEBUG) {
+        printf("\nEnding conditions:\n");
+        print_cpu_registers(&cpu);
+        printf("\n");
+        print_cpu_memory(&cpu);
+        printf("\n");
+    }
 
     return 0;
 }
@@ -104,6 +111,7 @@ int initialize_cpu(CPU* cpu, char* filename) {
     initialize_uint8_register(&cpu->E, 'E', 0);
     initialize_uint8_register(&cpu->H, 'H', 0);
     initialize_uint8_register(&cpu->L, 'L', 0);
+    initialize_uint8_register(&cpu->M, 'M', 0);
 
     initialize_uint16_register(&cpu->BC, "BC", 0);
     initialize_uint16_register(&cpu->DE, "DE", 0);
@@ -136,7 +144,8 @@ void print_cpu_registers(CPU* cpu) {
     printf("%c = %d, ", cpu->D.name, cpu->D.value);
     printf("%c = %d, ", cpu->E.name, cpu->E.value);
     printf("%c = %d, ", cpu->H.name, cpu->H.value);
-    printf("%c = %d\n", cpu->L.name, cpu->L.value);
+    printf("%c = %d, ", cpu->L.name, cpu->L.value);
+    printf("%c = %d\n", cpu->M.name, cpu->M.value);
 
     printf("%s = %d, ", cpu->BC.name, cpu->BC.value);
     printf("%s = %d, ", cpu->DE.name, cpu->DE.value);
@@ -164,23 +173,98 @@ void print_binary(uint8_t byte) {
     }
 }
 
-uint8_t fetch(CPU* cpu) { return cpu->memory[cpu->program_counter]; }
+uint8_t fetch(CPU* cpu) {
+    return cpu->memory[cpu->program_counter];
+}
+
+uint8_register* get_register_ptr(CPU* cpu, uint8_t reg) {
+    switch (reg) {
+        case 0:
+            return &cpu->B;
+        case 1:
+            return &cpu->C;
+        case 2:
+            return &cpu->D;
+        case 3:
+            return &cpu->E;
+        case 4:
+            return &cpu->E;
+        case 5:
+            return &cpu->H;
+        case 6:
+            return &cpu->M;
+        case 7:
+            return &cpu->A;
+    }
+}
+
+char* get_register_name(uint8_t reg) {
+    switch (reg) {
+        case 0:
+            return "B";
+        case 1:
+            return "C";
+        case 2:
+            return "D";
+        case 3:
+            return "E";
+        case 4:
+            return "E";
+        case 5:
+            return "H";
+        case 6:
+            return "M";
+        case 7:
+            return "A";
+    }
+}
 
 // Opcode table
 void initialize_opcode_lookup() {
+    // Create all MOV opcodes
+    for (int i = 0x40; i <= 0x7F; i++) {
+        char name[10] = "MOV ";
+        char* dest_name = get_register_name((i >> 3) & 7);
+        char* src_name = get_register_name(i & 7);
+        strcat(name, dest_name);
+        strcat(name, ", ");
+        strcat(name, src_name);
+        opcode_lookup[i] = (Instruction) {name, MOV, 1};
+    }
+
+    // Create all MVI opcodes
+    for (int i = 0; i <= 7; i++) {
+        uint8_t opcode = (i << 3) | 6;
+        char name[7] = "MVI, ";
+        strcat(name, get_register_name(i));
+        opcode_lookup[opcode] = (Instruction) {name, MVI, 2};
+    }
+
+    opcode_lookup[0x00] = (Instruction) {"NOP", NOP, 1};
     opcode_lookup[0x66] = (Instruction) {"HLT", HLT, 1};
-    opcode_lookup[0x3E] = (Instruction) {"MVI_B", MVI_B, 2};
+    // opcode_lookup[0x3E] = (Instruction) {"MVI_B", MVI, 2};
     opcode_lookup[0x47] = (Instruction) {"MOV B, A", MOV, 1};
+
 }
 
 // Opcode function defenitions
-void HLT(CPU* cpu, uint8_t opcode) { cpu->running = false; }
-void MVI_B(CPU* cpu, uint8_t opcode) {
-    cpu->B.value = cpu->memory[cpu->stack_pointer + 1];
-    cpu->stack_pointer++;
+void HLT(CPU* cpu, uint8_t opcode) { 
+    cpu->running = false;
+    if (DEBUG) printf("HLT\n");
+}
+void MVI(CPU* cpu, uint8_t opcode) {
+    uint8_register* dest_ptr = get_register_ptr(cpu, (opcode >> 3) & 7);
+    dest_ptr->value = cpu->memory[cpu->stack_pointer + 1];
+    if (DEBUG)  printf("MVI %c, %d\n", dest_ptr->name, cpu->memory[cpu->stack_pointer + 1]);
 }
 void MOV(CPU* cpu, uint8_t opcode) {
-
+    uint8_register* dest_ptr = get_register_ptr(cpu, (opcode >> 3) & 7);
+    uint8_register* src_ptr = get_register_ptr(cpu, opcode & 7);
+    dest_ptr->value = src_ptr->value;
+    if (DEBUG) printf("MOV %c, %c\n", dest_ptr->name, src_ptr->name);
+}
+void NOP(CPU* cpu, uint8_t opcode) {
+    if (DEBUG) printf("NOP\n");
 }
 
 
