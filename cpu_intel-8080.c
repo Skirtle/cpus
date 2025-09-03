@@ -53,10 +53,10 @@ void MVI(CPU* cpu, uint8_t opcode);
 void MOV(CPU* cpu, uint8_t opcode);
 
 // Arithmetic and logic opcodes (8-bit only)
-void ADD(CPU* cpu, uint8_t opcode);	// Add register to A
-void ADI(CPU* cpu, uint8_t opcode);	// Add immediate to A
-void ADC(CPU* cpu, uint8_t opcode);	// Add register to A with carry
-void ACI(CPU* cpu, uint8_t opcode);	// Add immediate to A with carry
+void ADD(CPU* cpu, uint8_t opcode); // Add register to A
+void ADI(CPU* cpu, uint8_t opcode); // Add immediate to A
+void ADC(CPU* cpu, uint8_t opcode); // Add register to A with carry
+void ACI(CPU* cpu, uint8_t opcode); // Add immediate to A with carry
 
 void SUB(CPU* cpu, uint8_t opcode); // Subtract register from A
 void SUI(CPU* cpu, uint8_t opcode); // Subtract immediate from A
@@ -316,10 +316,10 @@ void MVI(CPU* cpu, uint8_t opcode) {
 }
 
 // Arithmetic and logic opcodes (8-bit only)
-void ADD(CPU* cpu, uint8_t opcode) {}	// Add register to A
-void ADI(CPU* cpu, uint8_t opcode) {}	// Add immediate to A
-void ADC(CPU* cpu, uint8_t opcode) {}	// Add register to A with carry
-void ACI(CPU* cpu, uint8_t opcode) {}	// Add immediate to A with carry
+void ADD(CPU* cpu, uint8_t opcode) {} // Add register to A
+void ADI(CPU* cpu, uint8_t opcode) {} // Add immediate to A
+void ADC(CPU* cpu, uint8_t opcode) {} // Add register to A with carry
+void ACI(CPU* cpu, uint8_t opcode) {} // Add immediate to A with carry
 
 void SUB(CPU* cpu, uint8_t opcode) {} // Subtract register from A
 void SUI(CPU* cpu, uint8_t opcode) {} // Subtract immediate from A
