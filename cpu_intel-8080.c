@@ -9,8 +9,8 @@
 
 
 uint8_register* initialize_registers(char default_value);
-void print_registers(uint8_register* registers);
-void print_register(uint8_register* reg);
+void print_uint8_registers(uint8_register* registers);
+void print_uint8_register(uint8_register* reg);
 
 int main(int argc, int* argv) {
     // Initializing registers
@@ -19,14 +19,14 @@ int main(int argc, int* argv) {
 
     if (DEBUG) {
         printf("Initialized registers\n");
-        print_registers(registers);
+        print_uint8_registers(registers);
     }
 
     // Status registers (flags)
     uint8_register status_register;
     status_register.name = 'F';
     status_register.value = 0;
-    if (DEBUG) print_register(&status_register);
+    if (DEBUG) print_uint8_register(&status_register);
 
     free(registers);
     return 0;
@@ -47,13 +47,13 @@ uint8_register* initialize_registers(char default_value) {
     return registers;
 }
 
-void print_registers(uint8_register* registers) {
+void print_uint8_registers(uint8_register* registers) {
     for (int i = 0; i < REGISTER_COUNT; i++) {
-        print_register(&registers[i]);
+        print_uint8_register(&registers[i]);
     }
 }
 
-void print_register(uint8_register* reg) {
+void print_uint8_register(uint8_register* reg) {
     printf("uint8_register %c: %d\n", reg->name, reg->value);
 }
 
