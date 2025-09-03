@@ -37,10 +37,12 @@ void print_cpu_registers(CPU* cpu);
 void print_cpu_memory(CPU* cpu);
 void print_binary(uint8_t byte);
 void initialize_opcode_lookup();
-uint8_t fetch(CPU* cpu);
-int initialize_cpu(CPU* cpu, char* filename);
-uint8_register* get_register_ptr(CPU* cpu, uint8_t reg);
+void update_uint16_registers(CPU* cpu);
 char* get_register_name(uint8_t reg);
+int initialize_cpu(CPU* cpu, char* filename);
+uint8_t fetch(CPU* cpu);
+uint8_register* get_register_ptr(CPU* cpu, uint8_t reg);
+
 
 // Opcode functions
 void HLT(CPU* cpu, uint8_t opcode);
@@ -147,9 +149,9 @@ void print_cpu_registers(CPU* cpu) {
     printf("%c = %d, ", cpu->L.name, cpu->L.value);
     printf("%c = %d\n", cpu->M.name, cpu->M.value);
 
-    printf("%s = %d, ", cpu->BC.name, cpu->BC.value);
-    printf("%s = %d, ", cpu->DE.name, cpu->DE.value);
-    printf("%s = %d\n", cpu->HL.name, cpu->HL.value);
+    printf("%s = 0x%04x, ", cpu->BC.name, cpu->BC.value);
+    printf("%s = 0x%04x, ", cpu->DE.name, cpu->DE.value);
+    printf("%s = 0x%04x\n", cpu->HL.name, cpu->HL.value);
 
     printf("SP = %d, PC = %d\n", cpu->stack_pointer, cpu->program_counter);
     // TODO: Split the Status print into its multiple flags
@@ -219,6 +221,16 @@ char* get_register_name(uint8_t reg) {
     }
 }
 
+void update_uint16_registers(CPU* cpu) {
+    uint16_register reg16_bc = uint8_to_uint16_register(&cpu->B, &cpu->C);
+    uint16_register reg16_de = uint8_to_uint16_register(&cpu->D, &cpu->E);
+    uint16_register reg16_hl = uint8_to_uint16_register(&cpu->H, &cpu->L);
+
+    cpu->BC.value = reg16_bc.value;
+    cpu->DE.value = reg16_de.value;
+    cpu->HL.value = reg16_hl.value;
+}
+
 // Opcode table
 void initialize_opcode_lookup() {
     // Create all MOV opcodes
@@ -253,15 +265,24 @@ void HLT(CPU* cpu, uint8_t opcode) {
     if (DEBUG) printf("HLT\n");
 }
 void MVI(CPU* cpu, uint8_t opcode) {
-    uint8_register* dest_ptr = get_register_ptr(cpu, (opcode >> 3) & 7);
+    int reg_number = (opcode >> 3) & 7;
+
+    uint8_register* dest_ptr = get_register_ptr(cpu, reg_number);
     dest_ptr->value = cpu->memory[cpu->stack_pointer + 1];
     if (DEBUG)  printf("MVI %c, %d\n", dest_ptr->name, cpu->memory[cpu->stack_pointer + 1]);
+
+    // TODO: Potentially update the register pair possibily affected by this move
+    // Now to update any potential register pairs that could of changed from this
+    // Only need to change if the register is B, C, D, E, H, or L. Which is most of them.
+    update_uint16_registers(cpu);
+
 }
 void MOV(CPU* cpu, uint8_t opcode) {
     uint8_register* dest_ptr = get_register_ptr(cpu, (opcode >> 3) & 7);
     uint8_register* src_ptr = get_register_ptr(cpu, opcode & 7);
     dest_ptr->value = src_ptr->value;
     if (DEBUG) printf("MOV %c, %c\n", dest_ptr->name, src_ptr->name);
+    update_uint16_registers(cpu);
 }
 void NOP(CPU* cpu, uint8_t opcode) {
     if (DEBUG) printf("NOP\n");
