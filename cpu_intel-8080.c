@@ -3,57 +3,70 @@
 #include <stdint.h>
 #include "registers.h"
 
-#define REGISTER_COUNT 7
-#define REGISTER_NAMES (char[REGISTER_COUNT]){'A', 'B', 'C', 'D', 'E', 'H', 'L'}
 #define DEBUG 1
 
+typedef struct CPU {
+    uint8_register A, B, C, D, E, H, L, status;
+    uint16_register BC, DE, HL;
+    uint16_t stack_pointer;
+    uint16_t program_counter; 
+} CPU;
 
-uint8_register* initialize_registers(char default_value);
-void print_uint8_registers(uint8_register* registers);
-void print_uint8_register(uint8_register* reg);
+void initialize_uint8_register(uint8_register* reg, char c, uint8_t v);
+void initialize_uint16_register(uint16_register* reg, char* s, uint16_t v);
+void print_cpu(CPU* cpu);
+
+void initialize_cpu(CPU* cpu) {
+    initialize_uint8_register(&cpu->A, 'A', 0);
+    initialize_uint8_register(&cpu->B, 'B', 0);
+    initialize_uint8_register(&cpu->C, 'C', 0);
+    initialize_uint8_register(&cpu->D, 'D', 0);
+    initialize_uint8_register(&cpu->E, 'E', 0);
+    initialize_uint8_register(&cpu->H, 'H', 0);
+    initialize_uint8_register(&cpu->L, 'L', 0);
+
+    initialize_uint16_register(&cpu->BC, "BC", 0);
+    initialize_uint16_register(&cpu->DE, "DE", 0);
+    initialize_uint16_register(&cpu->HL, "HL", 0);
+
+    cpu->stack_pointer = 0;
+    cpu->program_counter = 0;
+
+    initialize_uint8_register(&cpu->L, 'S', 0);
+}
 
 int main(int argc, int* argv) {
-    // Initializing registers
-    uint8_register* registers = initialize_registers(0);
-    if (registers == NULL) return 1;
+    CPU cpu;
+    initialize_cpu(&cpu);
 
-    if (DEBUG) {
-        printf("Initialized registers\n");
-        print_uint8_registers(registers);
-    }
-
-    // Status registers (flags)
-    uint8_register status_register;
-    status_register.name = 'F';
-    status_register.value = 0;
-    if (DEBUG) print_uint8_register(&status_register);
-
-    free(registers);
+    print_cpu(&cpu);
     return 0;
 }
 
-
-uint8_register* initialize_registers(char default_value) {
-    uint8_register* registers = malloc(sizeof(uint8_register) * REGISTER_COUNT);
-    if (registers == NULL) return NULL; 
-
-    for (int i = 0; i < REGISTER_COUNT; i++) {
-        uint8_register temp_register;
-        temp_register.name = REGISTER_NAMES[i];
-        temp_register.value = default_value;
-        registers[i] = temp_register;
-    }
-
-    return registers;
+void initialize_uint8_register(uint8_register* reg, char c, uint8_t v) {
+    reg->name = c;
+    reg->value = v;
 }
 
-void print_uint8_registers(uint8_register* registers) {
-    for (int i = 0; i < REGISTER_COUNT; i++) {
-        print_uint8_register(&registers[i]);
-    }
+void initialize_uint16_register(uint16_register* reg, char* s, uint16_t v) {
+    strcpy(reg->name, s);
+    reg->value = v;
 }
 
-void print_uint8_register(uint8_register* reg) {
-    printf("uint8_register %c: %d\n", reg->name, reg->value);
-}
+void print_cpu(CPU* cpu) {
+    printf("%c = %d, ", cpu->A.name, cpu->A.value);
+    printf("%c = %d, ", cpu->B.name, cpu->B.value);
+    printf("%c = %d, ", cpu->C.name, cpu->C.value);
+    printf("%c = %d, ", cpu->D.name, cpu->D.value);
+    printf("%c = %d, ", cpu->E.name, cpu->E.value);
+    printf("%c = %d, ", cpu->H.name, cpu->H.value);
+    printf("%c = %d\n", cpu->L.name, cpu->L.value);
 
+    printf("%s = %d, ", cpu->BC.name, cpu->BC.value);
+    printf("%s = %d, ", cpu->DE.name, cpu->DE.value);
+    printf("%s = %d\n", cpu->HL.name, cpu->HL.value);
+
+    printf("SP = %d, PC = %d\n", cpu->stack_pointer, cpu->program_counter);
+    // TODO: Split the Status print into its multiple flags
+    printf("Status = %d\n", cpu->status.value); 
+}
