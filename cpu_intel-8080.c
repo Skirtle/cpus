@@ -375,8 +375,9 @@ void initialize_opcode_lookup() {
     opcode_lookup[0x00] = (Instruction) {"NOP", NOP, 1};
     opcode_lookup[0x66] = (Instruction) {"HLT", HLT, 1};
     opcode_lookup[0xC6] = (Instruction) {"ADI", ADI, 2};
+    opcode_lookup[0xCE] = (Instruction) {"ACI", ACI, 2};
 
-    count += 3;
+    count += 4;
 
     if (DEBUG) printf("\n%d/256 (%0.2f%%) opcodes implemented", count, (double) count / 2.56);
 
@@ -436,10 +437,17 @@ void ADC(CPU* cpu, uint8_t opcode) { // Add register to A with carry
     uint8_t b = reg->value;
     uint8_t c = cpu->flag.value & 1;
     cpu->A.value = a + b + c;
-    if (DEBUG) printf("ADD %c\t\t// Add value %d from register %c to A\n", reg->name, reg->value, reg->name);
+    if (DEBUG) printf("ADD %c\t\t// Add value %d and carry %d from register %c to A\n", reg->name, reg->value, c, reg->name);
     update_flags_add(cpu, opcode, a, reg->value);
 } 
-void ACI(CPU* cpu, uint8_t opcode) {} // Add immediate to A with carry
+void ACI(CPU* cpu, uint8_t opcode) { // Add immediate to A with carry
+    uint8_t a = cpu->A.value;
+    uint8_t b = cpu->memory[cpu->program_counter + 1];
+    uint8_t c = cpu->flag.value & 1;
+    cpu->A.value += b + c;
+    if (DEBUG) printf("ADI %u\t\t// Add immediate value %u and carry %d to A\n", b, b, c);
+    update_flags_add(cpu, opcode, a, b);
+}
 
 void SUB(CPU* cpu, uint8_t opcode) {} // Subtract register from A
 void SUI(CPU* cpu, uint8_t opcode) {} // Subtract immediate from A
