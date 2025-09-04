@@ -287,8 +287,8 @@ void update_flags_add(CPU* cpu, uint8_t opcode, uint8_t reg_a_value, uint8_t add
     uint8_t a = reg_a_value;
     uint8_t b = added_value;
     uint8_t c = 0;
-    if (0x88 <= opcode && opcode <= 0x8F) c = 1; // If the opcode is for ADC
-
+    if ((0x88 <= opcode && opcode <= 0x8F) || opcode == 0xCE) c = 1; // If the opcode is for ADC (0x88-0x8F) or ACI (0xCE)
+    c *= cpu->flag.value & 1;
 
     // S.Z.P.A.C.
     // Set Sign to 1 if negative, otherwise 0
