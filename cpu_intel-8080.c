@@ -23,7 +23,7 @@ typedef struct CPU {
 } CPU;
 
 typedef struct Instruction {
-    char* mnemonic; // For debugging
+    char* name; // For debugging
     void (*execute)(CPU* cpu, uint8_t opcode);
     uint8_t size; // Size of the instruction
 } Instruction;
@@ -267,9 +267,7 @@ void update_uint16_registers(CPU* cpu) {
 // Opcode table
 void initialize_opcode_lookup() {
     // Set all opcodes to be invalid
-    for (int i = 0; i < 256; i++) {
-        opcode_lookup[i] = (Instruction) {"INVALID", HLT, 0};
-    }
+    for (int i = 0; i < 256; i++) opcode_lookup[i] = (Instruction) {"INVALID", HLT, 0}; // Size = 0 for invalid opcodes
 
     int count = 0;
     // Create all MOV opcodes
