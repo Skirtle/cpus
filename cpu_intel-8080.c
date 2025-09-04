@@ -39,7 +39,7 @@ void print_cpu_memory(CPU* cpu);
 void print_binary(uint8_t byte);
 void initialize_opcode_lookup();
 void update_uint16_registers(CPU* cpu);
-void update_flags(CPU* cpu, uint8_t opcode, uint8_t reg_a_value, uint8_t added_value);
+void update_flags_add(CPU* cpu, uint8_t opcode, uint8_t reg_a_value, uint8_t added_value);
 char* get_register_name(uint8_t reg);
 int initialize_cpu(CPU* cpu, char* filename);
 uint8_t fetch(CPU* cpu);
@@ -195,7 +195,9 @@ void print_cpu_registers(CPU* cpu) {
 
     printf("SP = %d, PC = %d\n", cpu->stack_pointer, cpu->program_counter);
     // TODO: Split the Flag print into its multiple flags
-    printf("Flag = %d\nRunning = %d", cpu->flag.value, cpu->running); 
+    printf("Flag = ");
+    print_binary(cpu->flag.value);
+    printf(" (0x%02x), Running = %d",cpu->flag.value, cpu->running); 
 }
 
 void print_cpu_memory(CPU* cpu) {
@@ -271,7 +273,7 @@ void update_uint16_registers(CPU* cpu) {
     cpu->HL.value = reg16_hl.value;
 }
 
-void update_flags(CPU* cpu, uint8_t opcode, uint8_t reg_a_value, uint8_t added_value) {
+void update_flags_add(CPU* cpu, uint8_t opcode, uint8_t reg_a_value, uint8_t added_value) {
     /*
     * | S | Z | 0 | AC | 0 | P | 1 | CY |
     * S = Sign bit, bit7 == 1, mask = 0x80
@@ -282,6 +284,11 @@ void update_flags(CPU* cpu, uint8_t opcode, uint8_t reg_a_value, uint8_t added_v
     */
 
     uint8_t curr_flags = cpu->flag.value;
+
+    uint8_t a = reg_a_value;
+    uint8_t b = added_value;
+    uint8_t c = 0;
+    if (0x88 <= opcode && opcode <= 0x8F) c = 1; // If the opcode is for ADC
 
 
     // S.Z.P.A.C.
@@ -294,9 +301,9 @@ void update_flags(CPU* cpu, uint8_t opcode, uint8_t reg_a_value, uint8_t added_v
     else curr_flags &= ~0x40;
 
     int parity = 0;
-    int temp = reg_a_value;
-    for (int i = 0; i < 7; i++) {
-        parity += temp % 2;
+    int temp = cpu->A.value;
+    for (int i = 0; i <= 7; i++) {
+        parity += temp & 1;
         temp >>= 1;
     }
 
@@ -306,14 +313,14 @@ void update_flags(CPU* cpu, uint8_t opcode, uint8_t reg_a_value, uint8_t added_v
     else curr_flags &= ~0x04;
 
     // Set CY to 1 if overflow/borrow, otherwise 0
-    if ((uint16_t)reg_a_value + (uint16_t)added_value >= 256) curr_flags |= 0x01;
+    if ((uint16_t)a + (uint16_t)b + c >= 0xFF) curr_flags |= 0x01;
     else curr_flags &= ~0x01;
 
     // Set AC to 1 if nibble overflow/borrow, otherwise 0
-    if ((reg_a_value & 0x0F) + (added_value & 0x0F) > 0X0F) curr_flags |= 0x10;
+    if ((a & 0x0F) + (b & 0x0F) + c > 0x0F) curr_flags |= 0x10;
     else curr_flags &= ~ 0x10;
-    
-    return;
+
+    cpu->flag.value = curr_flags;
 }
 
 // Opcode table
@@ -323,6 +330,7 @@ void initialize_opcode_lookup() {
 
     int count = 0;
     // Create all MOV opcodes
+    if (DEBUG) printf("\nMOV range: 0x40-0x7f");
     for (int i = 0x40; i <= 0x7F; i++) {
         char name[10] = "MOV ";
         char* dest_name = get_register_name((i >> 3) & 7);
@@ -335,8 +343,10 @@ void initialize_opcode_lookup() {
     }
 
     // Create all MVI opcodes
+    if (DEBUG) printf("\nMVI range: ");
     for (int i = 0; i <= 7; i++) {
         uint8_t opcode = (i << 3) | 6;
+        printf("0x%02x ", opcode);
         char name[7] = "MVI, ";
         strcat(name, get_register_name(i));
         opcode_lookup[opcode] = (Instruction) {name, MVI, 2};
@@ -344,6 +354,7 @@ void initialize_opcode_lookup() {
     }
 
     // Create all ADD opcodes
+    if (DEBUG) printf("\nADD range: 0x%02x - 0x%02x", 128, 128 + 7);
     for (int i = 0; i <= 7; i++) {
         uint8_t opcode = 128 + i;
         char name[7] = "ADD ";
@@ -352,10 +363,21 @@ void initialize_opcode_lookup() {
         count++;
     }
 
+    // Create all ADC opcodes
+    if (DEBUG) printf("\nADC range: 0x%02x - 0x%02x", 136, 136 + 7);
+    for (int i = 0; i <= 7; i++) {
+        uint8_t opcode = 136 + i;
+        char name[7] = "ADC ";
+        strcat(name, get_register_name(i));
+        opcode_lookup[opcode] = (Instruction) {name, ADC, 1};
+        count++;
+    }
+
     opcode_lookup[0x00] = (Instruction) {"NOP", NOP, 1};
     opcode_lookup[0x66] = (Instruction) {"HLT", HLT, 1};
+    opcode_lookup[0xC6] = (Instruction) {"ADI", ADI, 2};
 
-    count += 2;
+    count += 3;
 
     if (DEBUG) printf("\n%d/256 (%0.2f%%) opcodes implemented", count, (double) count / 2.56);
 
@@ -395,15 +417,28 @@ void MVI(CPU* cpu, uint8_t opcode) {
 
 // Arithmetic and logic opcodes (8-bit only)
 void ADD(CPU* cpu, uint8_t opcode) { // Add register to A
-    // TODO: Add flag things
     uint8_t temp_a = cpu->A.value;
     uint8_register* reg = get_register_ptr(cpu, opcode & 7);
     cpu->A.value += reg->value;
-
     if (DEBUG) printf("ADD %c\t\t// Add value %d from register %c to A\n", reg->name, reg->value, reg->name);
+    update_flags_add(cpu, opcode, temp_a, reg->value);
 }
-void ADI(CPU* cpu, uint8_t opcode) {} // Add immediate to A
-void ADC(CPU* cpu, uint8_t opcode) {} // Add register to A with carry
+void ADI(CPU* cpu, uint8_t opcode) { // Add immediate to A
+    uint8_t temp_a = cpu->A.value;
+    uint8_t i_val = cpu->memory[cpu->program_counter + 1];
+    cpu->A.value += i_val;
+    if (DEBUG) printf("ADI %u\t\t// Add immediate value %u to A\n", i_val, i_val);
+    update_flags_add(cpu, opcode, temp_a, i_val);
+} 
+void ADC(CPU* cpu, uint8_t opcode) { // Add register to A with carry
+    uint8_register* reg = get_register_ptr(cpu, opcode & 7);
+    uint8_t a = cpu->A.value;
+    uint8_t b = reg->value;
+    uint8_t c = cpu->flag.value & 1;
+    cpu->A.value = a + b + c;
+    if (DEBUG) printf("ADD %c\t\t// Add value %d from register %c to A\n", reg->name, reg->value, reg->name);
+    update_flags_add(cpu, opcode, a, reg->value);
+} 
 void ACI(CPU* cpu, uint8_t opcode) {} // Add immediate to A with carry
 
 void SUB(CPU* cpu, uint8_t opcode) {} // Subtract register from A
