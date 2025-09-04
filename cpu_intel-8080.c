@@ -448,15 +448,12 @@ void ACI(CPU* cpu, uint8_t opcode) { // Add immediate to A with carry
     if (DEBUG) printf("ADI %u\t\t// Add immediate value %u and carry %d to A\n", b, b, c);
     update_flags_add(cpu, opcode, a, b);
 }
-
 void SUB(CPU* cpu, uint8_t opcode) {} // Subtract register from A
 void SUI(CPU* cpu, uint8_t opcode) {} // Subtract immediate from A
 void SBB(CPU* cpu, uint8_t opcode) {} // Subtract register from A with borrow
 void SBI(CPU* cpu, uint8_t opcode) {} // Subtract immediate from A with borrow
-
 void INR(CPU* cpu, uint8_t opcode) {} // Increment register
 void DCR(CPU* cpu, uint8_t opcode) {} // Decrement register
-
 void ANA(CPU* cpu, uint8_t opcode) {} // AND register with A
 void ANI(CPU* cpu, uint8_t opcode) {} // AND immediate with A
 void ORA(CPU* cpu, uint8_t opcode) {} // OR register with A
