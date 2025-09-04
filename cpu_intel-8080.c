@@ -284,7 +284,6 @@ void update_flags_add(CPU* cpu, uint8_t opcode, uint8_t reg_a_value, uint8_t add
     */
 
     uint8_t curr_flags = cpu->flag.value;
-
     uint8_t a = reg_a_value;
     uint8_t b = added_value;
     uint8_t c = 0;
@@ -417,18 +416,19 @@ void MVI(CPU* cpu, uint8_t opcode) {
 
 // Arithmetic and logic opcodes (8-bit only)
 void ADD(CPU* cpu, uint8_t opcode) { // Add register to A
-    uint8_t temp_a = cpu->A.value;
     uint8_register* reg = get_register_ptr(cpu, opcode & 7);
+    uint8_t a = cpu->A.value;
+    uint8_t b = reg->value;
     cpu->A.value += reg->value;
     if (DEBUG) printf("ADD %c\t\t// Add value %d from register %c to A\n", reg->name, reg->value, reg->name);
-    update_flags_add(cpu, opcode, temp_a, reg->value);
+    update_flags_add(cpu, opcode, a, reg->value);
 }
 void ADI(CPU* cpu, uint8_t opcode) { // Add immediate to A
-    uint8_t temp_a = cpu->A.value;
-    uint8_t i_val = cpu->memory[cpu->program_counter + 1];
-    cpu->A.value += i_val;
-    if (DEBUG) printf("ADI %u\t\t// Add immediate value %u to A\n", i_val, i_val);
-    update_flags_add(cpu, opcode, temp_a, i_val);
+    uint8_t a = cpu->A.value;
+    uint8_t b = cpu->memory[cpu->program_counter + 1];
+    cpu->A.value += b;
+    if (DEBUG) printf("ADI %u\t\t// Add immediate value %u to A\n", b, b);
+    update_flags_add(cpu, opcode, a, b);
 } 
 void ADC(CPU* cpu, uint8_t opcode) { // Add register to A with carry
     uint8_register* reg = get_register_ptr(cpu, opcode & 7);
