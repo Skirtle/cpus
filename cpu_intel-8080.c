@@ -373,7 +373,7 @@ void initialize_opcode_lookup() {
     }
 
     opcode_lookup[0x00] = (Instruction) {"NOP", NOP, 1};
-    opcode_lookup[0x66] = (Instruction) {"HLT", HLT, 1};
+    opcode_lookup[0x76] = (Instruction) {"HLT", HLT, 1};
     opcode_lookup[0xC6] = (Instruction) {"ADI", ADI, 2};
     opcode_lookup[0xCE] = (Instruction) {"ACI", ACI, 2};
 
