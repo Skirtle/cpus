@@ -106,6 +106,12 @@ int main(int argc, char* argv[]) {
         if (cpu.program_counter >= MAX_PROGRAM_SIZE) cpu.program_counter = 0;
         uint8_t opcode = cpu.memory[cpu.program_counter];
         Instruction inst = opcode_lookup[opcode];
+
+        if (inst.size == 0) {
+            printf("Invalid opcode (0x%02x) detected, exitting\n", opcode);
+            return 1;
+        }
+
         inst.execute(&cpu, opcode);
         cpu.program_counter += inst.size;
     }
@@ -260,6 +266,11 @@ void update_uint16_registers(CPU* cpu) {
 
 // Opcode table
 void initialize_opcode_lookup() {
+    // Set all opcodes to be invalid
+    for (int i = 0; i < 256; i++) {
+        opcode_lookup[i] = (Instruction) {"INVALID", HLT, 0};
+    }
+
     int count = 0;
     // Create all MOV opcodes
     for (int i = 0x40; i <= 0x7F; i++) {
