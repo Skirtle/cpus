@@ -14,7 +14,7 @@
 
 // Structs
 typedef struct CPU {
-    uint8_register A, B, C, D, E, H, L, M, status;
+    uint8_register A, B, C, D, E, H, L, M, flag;
     uint16_register BC, DE, HL;
     uint16_t stack_pointer;
     uint16_t program_counter; 
@@ -39,6 +39,7 @@ void print_cpu_memory(CPU* cpu);
 void print_binary(uint8_t byte);
 void initialize_opcode_lookup();
 void update_uint16_registers(CPU* cpu);
+void update_flags(CPU* cpu, uint8_t opcode, uint8_t reg_a_value, uint8_t added_value);
 char* get_register_name(uint8_t reg);
 int initialize_cpu(CPU* cpu, char* filename);
 uint8_t fetch(CPU* cpu);
@@ -139,6 +140,7 @@ void initialize_uint16_register(uint16_register* reg, char* s, uint16_t v) {
 }
 
 int initialize_cpu(CPU* cpu, char* filename) {
+    // Main registers
     initialize_uint8_register(&cpu->A, 'A', 0);
     initialize_uint8_register(&cpu->B, 'B', 0);
     initialize_uint8_register(&cpu->C, 'C', 0);
@@ -148,6 +150,7 @@ int initialize_cpu(CPU* cpu, char* filename) {
     initialize_uint8_register(&cpu->L, 'L', 0);
     initialize_uint8_register(&cpu->M, 'M', 0);
 
+    // Register pairs
     initialize_uint16_register(&cpu->BC, "BC", 0);
     initialize_uint16_register(&cpu->DE, "DE", 0);
     initialize_uint16_register(&cpu->HL, "HL", 0);
@@ -155,19 +158,23 @@ int initialize_cpu(CPU* cpu, char* filename) {
     cpu->stack_pointer = 0;
     cpu->program_counter = 0;
 
-    for (int i = 0; i < MAX_PROGRAM_SIZE; i++) {
-        cpu->memory[i] = 0;
-    }
+    for (int i = 0; i < MAX_PROGRAM_SIZE; i++) cpu->memory[i] = 0;
 
+    // Get program data, put into memory
     FILE* file = fopen(filename, "r");
     if (file == NULL) {
         printf("Could not open file %s\n", filename);
         return 1;
     }
+
     if (DEBUG) printf("Opened %s\n", filename);
     fread(cpu->memory, 1, sizeof(cpu->memory), file);
     fclose(file);
     cpu->running = true;
+    
+    // Set flag register
+    initialize_uint8_register(&cpu->flag, 'F', 0);
+
     return 0;
 }
 
@@ -187,8 +194,8 @@ void print_cpu_registers(CPU* cpu) {
     printf("%s = 0x%04x\n", cpu->HL.name, cpu->HL.value);
 
     printf("SP = %d, PC = %d\n", cpu->stack_pointer, cpu->program_counter);
-    // TODO: Split the Status print into its multiple flags
-    printf("Status = %d\nRunning = %d", cpu->status.value, cpu->running); 
+    // TODO: Split the Flag print into its multiple flags
+    printf("Flag = %d\nRunning = %d", cpu->flag.value, cpu->running); 
 }
 
 void print_cpu_memory(CPU* cpu) {
@@ -262,6 +269,51 @@ void update_uint16_registers(CPU* cpu) {
     cpu->BC.value = reg16_bc.value;
     cpu->DE.value = reg16_de.value;
     cpu->HL.value = reg16_hl.value;
+}
+
+void update_flags(CPU* cpu, uint8_t opcode, uint8_t reg_a_value, uint8_t added_value) {
+    /*
+    * | S | Z | 0 | AC | 0 | P | 1 | CY |
+    * S = Sign bit, bit7 == 1, mask = 0x80
+    * Z = Zero bit, byte == 0, mask = 0x40
+    * A = AC, does low nibble overflow/borrow to/from high nibble, mask = 0x10
+    * P = Even bit, bit0 == 0, mask = 0x04
+    * C = CY, does whole byte overflow/borrow, mask = 0x01
+    */
+
+    uint8_t curr_flags = cpu->flag.value;
+
+
+    // S.Z.P.A.C.
+    // Set Sign to 1 if negative, otherwise 0
+    if ((cpu->A.value & 0x80) == 0x80)  curr_flags |= 0x80;
+    else curr_flags &= ~0x80;
+
+    // Set Zero to 1 if equal to 0, otherwise 0
+    if (cpu->A.value == 0) curr_flags |= 0x40;
+    else curr_flags &= ~0x40;
+
+    int parity = 0;
+    int temp = reg_a_value;
+    for (int i = 0; i < 7; i++) {
+        parity += temp % 2;
+        temp >>= 1;
+    }
+
+    // Set Pairty to 1 if even, otherwise 0
+    // TODO: Check if the SUM of the bits is even, not the number calculated
+    if (parity % 2 == 0)  curr_flags |= 0x04;
+    else curr_flags &= ~0x04;
+
+    // Set CY to 1 if overflow/borrow, otherwise 0
+    if ((uint16_t)reg_a_value + (uint16_t)added_value >= 256) curr_flags |= 0x01;
+    else curr_flags &= ~0x01;
+
+    // Set AC to 1 if nibble overflow/borrow, otherwise 0
+    if ((reg_a_value & 0x0F) + (added_value & 0x0F) > 0X0F) curr_flags |= 0x10;
+    else curr_flags &= ~ 0x10;
+    
+    return;
 }
 
 // Opcode table
@@ -344,8 +396,10 @@ void MVI(CPU* cpu, uint8_t opcode) {
 // Arithmetic and logic opcodes (8-bit only)
 void ADD(CPU* cpu, uint8_t opcode) { // Add register to A
     // TODO: Add flag things
+    uint8_t temp_a = cpu->A.value;
     uint8_register* reg = get_register_ptr(cpu, opcode & 7);
     cpu->A.value += reg->value;
+
     if (DEBUG) printf("ADD %c\t\t// Add value %d from register %c to A\n", reg->name, reg->value, reg->name);
 }
 void ADI(CPU* cpu, uint8_t opcode) {} // Add immediate to A
