@@ -13,6 +13,7 @@ parser.add_argument("-N", "--no_output", action = "store_false", default = True,
 parser.add_argument("-r", "--run", action = "store_true", default = False, help = "Run the assembled file")
 parser.add_argument("-c", "--compile_c", action = "store_true", default = False, help = "Recompile the C file with gcc cpu_intel-8080.c -o out.exe' by default' by default")
 parser.add_argument("--compile_args", default = "-o out.exe", help = "Change the compile options for the C code")
+parser.add_argument("--version", action = "store_true", default = False, help = "Show the version of pcc")
 args = parser.parse_args()
 
 os_dict = {
@@ -24,6 +25,11 @@ op_os_dict = {
     'nt': "Linux",
     "posix": "Windows"
 }
+
+version = "0.1.0"
+
+if (args.version):
+    print(f"pcc {os_dict[os.name]} {version}")
 
 if (args.input == None): 
     print(f"{BOLD}pcc:{RESET}{PINK} fatal error:{RESET} no input files\nassembly terminate.")
