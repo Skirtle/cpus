@@ -1,5 +1,5 @@
-in_filename = "program.asm"
-out_filename = in_filename.split(".")[0] + ".mc"
+import argparse
+from errors import *
 
 class Command:
     def __init__(self, name, op1, op2):
@@ -39,39 +39,58 @@ class Command:
         names = { "B": 0, "C": 1, "D": 2, "E": 3, "H": 4, "L": 5, "M": 6, "A": 7 }
         return names[name]
 
-commands = []
-
-with open(in_filename, "r") as file:
-    comment_char = ";"
-    for line in file:
-        line = line.strip()
+def read_file(filename: str, verbose = False):
+    commands = []
+    with open(filename, "r") as file:
+        if (verbose): print(f"File {filename} found and opened")
+        comment_char = ";"
+        for line in file:
+            line = line.strip()
+            
+            # Remove comments
+            line = line.split(comment_char)[0].strip()
+            if (line == ""): continue
+            
+            # Split command and operands
+            line = line.replace(",", "")
+            split_code = line.split(" ")
+            command = None
+            op1 = None
+            op2 = None
+            
+            if (len(split_code) >= 1): command = split_code[0]
+            if (len(split_code) >= 2): op1 = split_code[1]
+            if (len(split_code) >= 3):  op2 = split_code[2]
+            
+            full_command = Command(command, op1, op2)
+            commands.append(full_command)
+    if (verbose): print(f"Done reading {filename}")
+    return commands
         
-        # Remove comments
-        line = line.split(comment_char)[0].strip()
-        if (line == ""): continue
+def write_file(filename: str, commands: list, verbose = False, create_file = True):
+    try:
+        with open(filename, "br+") as file:
+            if (verbose): print(f"Writing to file {filename}")
+            hex_list = []
+            for i in commands:
+                opcode_list = i.generate_opcode_list()
+                for opcode in opcode_list:
+                    hex_list.append(int("0x" + opcode, 16))
+            hex_list.append(int("0x76", 16))
         
-        # Split command and operands
-        line = line.replace(",", "")
-        split_code = line.split(" ")
-        command = None
-        op1 = None
-        op2 = None
-        
-        if (len(split_code) >= 1): command = split_code[0]
-        if (len(split_code) >= 2): op1 = split_code[1]
-        if (len(split_code) >= 3):  op2 = split_code[2]
-        
-        full_command = Command(command, op1, op2)
-        commands.append(full_command)
-        
-
-with open(out_filename, "br+") as file:
-    hex_list = []
-    for i in commands:
-        opcode_list = i.generate_opcode_list()
-        for opcode in opcode_list:
-            hex_list.append(int("0x" + opcode, 16))
-    hex_list.append(int("0x76", 16))
+            byte_list = bytearray(hex_list)
+            file.write(byte_list)
+        if (verbose): print(f"Wrote {len(byte_list)} bytes to {filename}")
+    except FileNotFoundError:
+        if (not create_file):
+            print(f"{BOLD}pcc:{RESET}{RED} fatal error:{RESET} could not create file {filename}\nassembly terminate.")
+            exit()
+        print(f"{BOLD}pcc:{RESET}{YELLOW} warning:{RESET} creating file {filename}")
+        open(filename, "w")
+        write_file(filename, commands, verbose)
+    except:
+        print(f"{BOLD}pcc:{RESET}{RED} fatal error:{RESET} could not open file {filename}\nassembly terminate.")
+        exit()
     
-    byte_list = bytearray(hex_list)
-    file.write(byte_list)
+if __name__ == "__main__":
+    print("Hello!")

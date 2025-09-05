@@ -7,7 +7,7 @@
 #include <stdbool.h>
 #include "registers.h"
 
-#define DEBUG false
+#define DEBUG true
 #define MAX_PROGRAM_SIZE 64
 #define MEMORY_WIDTH 8
 #define MAX_PORTS 256

@@ -1,0 +1,25 @@
+#!/usr/bin/python
+
+import argparse, simple_assembler as sa
+from errors import *
+
+
+parser = argparse.ArgumentParser(prog = "Intel 8080 assembler", description = "Assembles a file into an Intel 8080 readable machine code file")
+parser.add_argument("-i", "--input_filename", help = "The filename of the assembly code", dest = "input")
+parser.add_argument("input", nargs="?", help = "The filename of the assembly code")
+parser.add_argument("-o", "--output_filename", default = None)
+parser.add_argument("-v", "--verbose", action = "store_true", default = False)
+parser.add_argument("-N", "--no_output", action = "store_false", default = True)
+args = parser.parse_args()
+
+if (args.input == None): 
+    print(f"{BOLD}pcc:{RESET}{PINK} fatal error:{RESET} no input files\nassembly terminate.")
+    exit()
+
+in_filename = args.input
+if (args.output_filename == None): out_filename = in_filename.split(".")[0] + ".bin" 
+else: out_filename = args.output_filename
+
+if __name__ == "__main__":
+    commands = sa.read_file(in_filename, args.verbose)
+    sa.write_file(out_filename, commands, args.verbose, args.no_output)
