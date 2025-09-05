@@ -29,6 +29,9 @@ class Command:
         elif (self.name == "ACI"): 
             opcodes = f"{(0b11001110):02x} {self.op1.lower()[2:]}"
             return opcodes.split(" ")
+        elif (self.name == "OUT"):
+            opcodes = f"{(0b11010011 ):02x} {self.op1.lower()}"
+            return opcodes.split(" ")
         
         exit(f"{self.name} is not implemented yet, exitting")
         
@@ -58,7 +61,8 @@ with open(in_filename, "r") as file:
         if (len(split_code) >= 2): op1 = split_code[1]
         if (len(split_code) >= 3):  op2 = split_code[2]
         
-        commands.append(Command(command, op1, op2))
+        full_command = Command(command, op1, op2)
+        commands.append(full_command)
         
 
 with open(out_filename, "br+") as file:

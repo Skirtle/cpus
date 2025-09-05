@@ -7,9 +7,10 @@
 #include <stdbool.h>
 #include "registers.h"
 
-#define DEBUG false
+#define DEBUG true
 #define MAX_PROGRAM_SIZE 64
 #define MEMORY_WIDTH 8
+#define MAX_PORTS 256
 
 
 // Structs
@@ -19,6 +20,7 @@ typedef struct CPU {
     uint16_t stack_pointer;
     uint16_t program_counter; 
     uint8_t memory[MAX_PROGRAM_SIZE];
+    uint8_t ports[MAX_PORTS];
     bool running;
 } CPU;
 
@@ -59,15 +61,12 @@ void ADD(CPU* cpu, uint8_t opcode); // Add register to A
 void ADI(CPU* cpu, uint8_t opcode); // Add immediate to A
 void ADC(CPU* cpu, uint8_t opcode); // Add register to A with carry
 void ACI(CPU* cpu, uint8_t opcode); // Add immediate to A with carry
-
 void SUB(CPU* cpu, uint8_t opcode); // Subtract register from A
 void SUI(CPU* cpu, uint8_t opcode); // Subtract immediate from A
 void SBB(CPU* cpu, uint8_t opcode); // Subtract register from A with borrow
 void SBI(CPU* cpu, uint8_t opcode); // Subtract immediate from A with borrow
-
 void INR(CPU* cpu, uint8_t opcode); // Increment register
 void DCR(CPU* cpu, uint8_t opcode); // Decrement register
-
 void ANA(CPU* cpu, uint8_t opcode); // AND register with A
 void ANI(CPU* cpu, uint8_t opcode); // AND immediate with A
 void ORA(CPU* cpu, uint8_t opcode); // OR register with A
@@ -76,6 +75,9 @@ void XRA(CPU* cpu, uint8_t opcode); // ExclusiveOR register with A
 void XRI(CPU* cpu, uint8_t opcode); // ExclusiveOR immediate with A
 void CMP(CPU* cpu, uint8_t opcode); // Compare register with A
 void CPI(CPU* cpu, uint8_t opcode); // Compare immediate with A
+
+// Input and output
+void OUT(CPU* cpu, uint8_t opcode); // Write A to output port
 
 // Start!
 int main(int argc, char* argv[]) {
@@ -115,7 +117,6 @@ int main(int argc, char* argv[]) {
 
         inst.execute(&cpu, opcode);
         cpu.program_counter += inst.size;
-        printf("%s: A = %d, B = %d, Flag = 0x%02x\n", inst.name, cpu.A.value, cpu.B.value, cpu.flag.value);
     }
 
     if (DEBUG) {
@@ -350,8 +351,9 @@ void initialize_opcode_lookup() {
     opcode_lookup[0x76] = (Instruction) {"HLT", HLT, 1};
     opcode_lookup[0xC6] = (Instruction) {"ADI", ADI, 2};
     opcode_lookup[0xCE] = (Instruction) {"ACI", ACI, 2};
+    opcode_lookup[0xD3] = (Instruction) {"OUT", OUT, 2};
 
-    count += 4;
+    count += 5;
 
     if (DEBUG) printf("\n%d/256 (%0.2f%%) opcodes implemented", count, (double) count / 2.56);
 
@@ -436,6 +438,14 @@ void XRA(CPU* cpu, uint8_t opcode) {} // ExclusiveOR register with A
 void XRI(CPU* cpu, uint8_t opcode) {} // ExclusiveOR immediate with A
 void CMP(CPU* cpu, uint8_t opcode) {} // Compare register with A
 void CPI(CPU* cpu, uint8_t opcode) {} // Compare immediate with A
+
+// Input and output
+void OUT(CPU* cpu, uint8_t opcode) { // Write A to output port
+    uint8_t port_number = cpu->memory[cpu->program_counter + 1];
+    cpu->ports[port_number] = cpu->A.value;
+    if (DEBUG) printf("OUT %d\t\t// Write 0x%02x to output port %u\n",port_number, cpu->A.value, port_number);
+    if (port_number == 0) printf("OUTPUT: %u\n", cpu->A.value);
+} 
 
 
 #endif

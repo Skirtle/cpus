@@ -13,5 +13,5 @@ ACI 0x02      ; Add immediate 2 with carry 0 or 1 depending on previous CY, test
 MVI A, 0x80   ; Test sign bit
 ADI 0x80      ; Overflow to check S and CY
 
-MOV A, B
-MOV B, A
+MVI A, 0x69
+OUT 0 ; Write A to output port 0
