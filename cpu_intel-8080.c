@@ -83,7 +83,7 @@ void OUT(CPU* cpu, uint8_t opcode); // Write A to output port
 int main(int argc, char* argv[]) {
     char* filename;
     bool running = true;
-    if (argc == 1) filename = "program.mc";
+    if (argc == 1) filename = "program.bin";
     else filename = argv[1];
 
     CPU cpu;

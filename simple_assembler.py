@@ -42,7 +42,7 @@ class Command:
 def read_file(filename: str, verbose = False):
     commands = []
     with open(filename, "r") as file:
-        if (verbose): print(f"File {filename} found and opened")
+        if (verbose): print(f"{GREEN}Log:{RESET} File {filename} found and opened")
         comment_char = ";"
         for line in file:
             line = line.strip()
@@ -64,13 +64,13 @@ def read_file(filename: str, verbose = False):
             
             full_command = Command(command, op1, op2)
             commands.append(full_command)
-    if (verbose): print(f"Done reading {filename}")
+    if (verbose): print(f"{GREEN}Log:{RESET} Done reading {filename}")
     return commands
         
-def write_file(filename: str, commands: list, verbose = False, create_file = True):
+def write_file(filename: str, commands: list, verbose = False, create_file = True) -> int:
     try:
         with open(filename, "br+") as file:
-            if (verbose): print(f"Writing to file {filename}")
+            if (verbose): print(f"{GREEN}Log:{RESET} Writing to file {filename}")
             hex_list = []
             for i in commands:
                 opcode_list = i.generate_opcode_list()
@@ -80,17 +80,17 @@ def write_file(filename: str, commands: list, verbose = False, create_file = Tru
         
             byte_list = bytearray(hex_list)
             file.write(byte_list)
-        if (verbose): print(f"Wrote {len(byte_list)} bytes to {filename}")
+        if (verbose): print(f"{GREEN}Log:{RESET} Wrote {len(byte_list)} bytes to {filename}")
     except FileNotFoundError:
         if (not create_file):
-            print(f"{BOLD}pcc:{RESET}{RED} fatal error:{RESET} could not create file {filename}\nassembly terminate.")
-            exit()
-        print(f"{BOLD}pcc:{RESET}{YELLOW} warning:{RESET} creating file {filename}")
+            return 2
+        if (verbose): print(f"{YELLOW}Warning:{RESET} creating file {filename}")
         open(filename, "w")
         write_file(filename, commands, verbose)
-    except:
-        print(f"{BOLD}pcc:{RESET}{RED} fatal error:{RESET} could not open file {filename}\nassembly terminate.")
-        exit()
+    except: 
+        return 1
+        
+    return 0
     
 if __name__ == "__main__":
     print("Hello!")

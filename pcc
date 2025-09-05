@@ -10,6 +10,7 @@ parser.add_argument("input", nargs="?", help = "The filename of the assembly cod
 parser.add_argument("-o", "--output_filename", default = None)
 parser.add_argument("-v", "--verbose", action = "store_true", default = False)
 parser.add_argument("-N", "--no_output", action = "store_false", default = True)
+parser.add_argument("-r", "--run", action = "store_true", default = False, help = "Run the assembled file, assuming it was created")
 args = parser.parse_args()
 
 if (args.input == None): 
@@ -22,4 +23,10 @@ else: out_filename = args.output_filename
 
 if __name__ == "__main__":
     commands = sa.read_file(in_filename, args.verbose)
-    sa.write_file(out_filename, commands, args.verbose, args.no_output)
+    code = sa.write_file(out_filename, commands, args.verbose, args.no_output)
+    
+    if (code == 1): print(f"{BOLD}pcc:{RESET}{RED} fatal error:{RESET} could not open file {out_filename} to write\nassembly terminate.")
+    elif (code == 2): print(f"{BOLD}pcc:{RESET}{RED} fatal error:{RESET} could not create file {out_filename}\nassembly terminate.")
+    
+    if (args.run):
+        if (args.verbose): print(f"{GREEN}Log:{RESET} Running file {out_filename}")
