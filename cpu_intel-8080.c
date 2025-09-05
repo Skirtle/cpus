@@ -7,7 +7,7 @@
 #include <stdbool.h>
 #include "registers.h"
 
-#define DEBUG true
+#define DEBUG false
 #define MAX_PROGRAM_SIZE 64
 #define MEMORY_WIDTH 8
 
@@ -314,7 +314,6 @@ void initialize_opcode_lookup() {
 
     int count = 0;
     // Create all MOV opcodes
-    if (DEBUG) printf("\nMOV range: 0x40-0x7f");
     for (int i = 0x40; i <= 0x7F; i++) {
         char* dest_name = get_register_name((i >> 3) & 7);
         char* src_name = get_register_name(i & 7);
@@ -324,17 +323,14 @@ void initialize_opcode_lookup() {
     }
 
     // Create all MVI opcodes
-    if (DEBUG) printf("\nMVI range: ");
     for (int i = 0; i <= 7; i++) {
         uint8_t opcode = (i << 3) | 6;
-        if (DEBUG) printf("0x%02x ", opcode);
         opcode_lookup[opcode] = (Instruction) {"", MVI, 2};
         snprintf(opcode_lookup[opcode].name, sizeof(opcode_lookup[opcode].name), "MVI %s", get_register_name(i));
         count++;
     }
 
     // Create all ADD opcodes
-    if (DEBUG) printf("\nADD range: 0x%02x - 0x%02x", 128, 128 + 7);
     for (int i = 0; i <= 7; i++) {
         uint8_t opcode = 128 + i;
         opcode_lookup[opcode] = (Instruction) {"", ADD, 1};
@@ -343,7 +339,6 @@ void initialize_opcode_lookup() {
     }
 
     // Create all ADC opcodes
-    if (DEBUG) printf("\nADC range: 0x%02x - 0x%02x", 136, 136 + 7);
     for (int i = 0; i <= 7; i++) {
         uint8_t opcode = 136 + i;
         opcode_lookup[opcode] = (Instruction) {"", ADC, 1};
@@ -355,11 +350,6 @@ void initialize_opcode_lookup() {
     opcode_lookup[0x76] = (Instruction) {"HLT", HLT, 1};
     opcode_lookup[0xC6] = (Instruction) {"ADI", ADI, 2};
     opcode_lookup[0xCE] = (Instruction) {"ACI", ACI, 2};
-
-    for (int i = 0; i < 256; i++) {
-        if (opcode_lookup[i].size == 0) continue;
-        printf("0x%02x: %s\n", i, opcode_lookup[i].name);
-    }
 
     count += 4;
 
