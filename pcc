@@ -46,10 +46,9 @@ if __name__ == "__main__":
         if (args.verbose): print(f"{GREEN}Log:{RESET} Got exit code {result.returncode} from recompiling C code")
     
     if (args.run):
-        if (args.verbose): print(f"{GREEN}Log:{RESET} Running file {out_filename}")
-        
         try:
             open("./out.exe", "r") # Check if we can open the file
+            if (args.verbose): print(f"{GREEN}Log:{RESET} Running file {out_filename}")
             result = subprocess.run(["./out.exe", out_filename])
         except FileNotFoundError:
             print(f"{RED}Fatal error:{RESET} Could not find out.exe. Did you use -N by mistake?")
