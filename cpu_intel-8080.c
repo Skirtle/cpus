@@ -352,7 +352,7 @@ void initialize_opcode_lookup() {
     for (int i = 0; i < 256; i++) { 
         if (opcode_lookup[i].size != 0) count += 1;
     }
-    if (DEBUG) printf("\n%d/256 (%0.2f%%) opcodes implemented", count, (double) count / 2.56);
+    if (DEBUG) printf("\n%d/256 (%0.2f%%) opcodes implemented", count, count / 2.56);
 
 }
 
