@@ -67,7 +67,7 @@ def read_file(filename: str, verbose = False):
     if (verbose): print(f"{GREEN}Log:{RESET} Done reading {filename}")
     return commands
         
-def write_file(filename: str, commands: list, verbose = False, create_file = True) -> int:
+def write_file(filename: str, commands: list, verbose = False) -> int:
     try:
         with open(filename, "br+") as file:
             if (verbose): print(f"{GREEN}Log:{RESET} Writing to file {filename}")
@@ -82,10 +82,8 @@ def write_file(filename: str, commands: list, verbose = False, create_file = Tru
             file.write(byte_list)
         if (verbose): print(f"{GREEN}Log:{RESET} Wrote {len(byte_list)} bytes to {filename}")
     except FileNotFoundError:
-        if (not create_file):
-            return 2
         if (verbose): print(f"{YELLOW}Warning:{RESET} creating file {filename}")
-        open(filename, "w")
+        open(filename, "w") # Maybe need error checking here, that's why I'm opening the file...
         write_file(filename, commands, verbose)
     except: 
         return 1

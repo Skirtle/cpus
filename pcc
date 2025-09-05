@@ -5,15 +5,19 @@ import simple_assembler as sa
 from errors import *
 
 parser = argparse.ArgumentParser(prog = "Intel 8080 assembler", description = "Assembles a file into an Intel 8080 readable machine code file")
+# pcc related arguments
 parser.add_argument("-i", "--input_filename", help = "The filename of the assembly code", dest = "input")
 parser.add_argument("input", nargs="?", help = "The filename of the assembly code")
 parser.add_argument("-o", "--output_filename", default = None, help = "The output filename")
 parser.add_argument("-v", "--verbose", action = "store_true", default = False, help = "Print verbose information")
-parser.add_argument("-N", "--no_output", action = "store_false", default = True, help = "Do not compile, for some reason")
+parser.add_argument("-N", "--no_output", action = "store_false", default = True, help = "Do not compile assembly code")
+parser.add_argument("--version", action = "store_true", default = False, help = "Show the version of pcc")
+
+# C related arguments
 parser.add_argument("-r", "--run", action = "store_true", default = False, help = "Run the assembled file")
 parser.add_argument("-c", "--compile_c", action = "store_true", default = False, help = "Recompile the C file with gcc cpu_intel-8080.c -o out.exe' by default' by default")
 parser.add_argument("--compile_args", default = "-o out.exe", help = "Change the compile options for the C code")
-parser.add_argument("--version", action = "store_true", default = False, help = "Show the version of pcc")
+
 args = parser.parse_args()
 
 os_dict = {
@@ -40,11 +44,12 @@ if (args.output_filename == None): out_filename = in_filename.split(".")[0] + ".
 else: out_filename = args.output_filename
 
 if __name__ == "__main__":
-    commands = sa.read_file(in_filename, args.verbose)
-    write_code = sa.write_file(out_filename, commands, args.verbose, args.no_output)
+    if (args.no_output):
+        commands = sa.read_file(in_filename, args.verbose)
+        write_code = sa.write_file(out_filename, commands, args.verbose)
     
-    if (write_code == 1): print(f"{BOLD}pcc:{RESET}{RED} fatal error:{RESET} could not open file {out_filename} to write\nassembly terminate.")
-    elif (write_code == 2): print(f"{BOLD}pcc:{RESET}{RED} fatal error:{RESET} could not create file {out_filename}\nassembly terminate.")
+        if (write_code == 1): print(f"{BOLD}pcc:{RESET}{RED} fatal error:{RESET} could not open file {out_filename} to write\nassembly terminate.")
+        elif (write_code == 2): print(f"{BOLD}pcc:{RESET}{RED} fatal error:{RESET} could not create file {out_filename}\nassembly terminate.")
     
     if (args.compile_c):
         if (args.verbose): print(f"{GREEN}LOG:{RESET} Recompiling C code with options '{args.compile_args}'")
