@@ -23,7 +23,7 @@ typedef struct CPU {
 } CPU;
 
 typedef struct Instruction {
-    char* name; // For debugging
+    char name[16]; // For debugging
     void (*execute)(CPU* cpu, uint8_t opcode);
     uint8_t size; // Size of the instruction
 } Instruction;
@@ -115,6 +115,7 @@ int main(int argc, char* argv[]) {
 
         inst.execute(&cpu, opcode);
         cpu.program_counter += inst.size;
+        printf("%s: A = %d, B = %d, Flag = 0x%02x\n", inst.name, cpu.A.value, cpu.B.value, cpu.flag.value);
     }
 
     if (DEBUG) {
@@ -243,24 +244,8 @@ uint8_register* get_register_ptr(CPU* cpu, uint8_t reg) {
 }
 
 char* get_register_name(uint8_t reg) {
-    switch (reg) {
-        case 0:
-            return "B";
-        case 1:
-            return "C";
-        case 2:
-            return "D";
-        case 3:
-            return "E";
-        case 4:
-            return "E";
-        case 5:
-            return "H";
-        case 6:
-            return "M";
-        case 7:
-            return "A";
-    }
+    char* names[] = {"B", "C", "D", "E", "H", "L", "M", "A"};
+    return names[reg & 7];
 }
 
 void update_uint16_registers(CPU* cpu) {
@@ -331,13 +316,10 @@ void initialize_opcode_lookup() {
     // Create all MOV opcodes
     if (DEBUG) printf("\nMOV range: 0x40-0x7f");
     for (int i = 0x40; i <= 0x7F; i++) {
-        char name[10] = "MOV ";
         char* dest_name = get_register_name((i >> 3) & 7);
         char* src_name = get_register_name(i & 7);
-        strcat(name, dest_name);
-        strcat(name, ", ");
-        strcat(name, src_name);
-        opcode_lookup[i] = (Instruction) {name, MOV, 1};
+        opcode_lookup[i] = (Instruction) {"", MOV, 1};
+        snprintf(opcode_lookup[i].name, sizeof(opcode_lookup[i].name), "MOV %s, %s", dest_name, src_name);
         count++;
     }
 
@@ -345,10 +327,9 @@ void initialize_opcode_lookup() {
     if (DEBUG) printf("\nMVI range: ");
     for (int i = 0; i <= 7; i++) {
         uint8_t opcode = (i << 3) | 6;
-        printf("0x%02x ", opcode);
-        char name[7] = "MVI, ";
-        strcat(name, get_register_name(i));
-        opcode_lookup[opcode] = (Instruction) {name, MVI, 2};
+        if (DEBUG) printf("0x%02x ", opcode);
+        opcode_lookup[opcode] = (Instruction) {"", MVI, 2};
+        snprintf(opcode_lookup[opcode].name, sizeof(opcode_lookup[opcode].name), "MVI %s", get_register_name(i));
         count++;
     }
 
@@ -356,9 +337,8 @@ void initialize_opcode_lookup() {
     if (DEBUG) printf("\nADD range: 0x%02x - 0x%02x", 128, 128 + 7);
     for (int i = 0; i <= 7; i++) {
         uint8_t opcode = 128 + i;
-        char name[7] = "ADD ";
-        strcat(name, get_register_name(i));
-        opcode_lookup[opcode] = (Instruction) {name, ADD, 1};
+        opcode_lookup[opcode] = (Instruction) {"", ADD, 1};
+        snprintf(opcode_lookup[opcode].name, sizeof(opcode_lookup[opcode].name), "ADD %s", get_register_name(i));
         count++;
     }
 
@@ -366,9 +346,8 @@ void initialize_opcode_lookup() {
     if (DEBUG) printf("\nADC range: 0x%02x - 0x%02x", 136, 136 + 7);
     for (int i = 0; i <= 7; i++) {
         uint8_t opcode = 136 + i;
-        char name[7] = "ADC ";
-        strcat(name, get_register_name(i));
-        opcode_lookup[opcode] = (Instruction) {name, ADC, 1};
+        opcode_lookup[opcode] = (Instruction) {"", ADC, 1};
+        snprintf(opcode_lookup[opcode].name, sizeof(opcode_lookup[opcode].name), "ADC %s", get_register_name(i));
         count++;
     }
 
@@ -376,6 +355,11 @@ void initialize_opcode_lookup() {
     opcode_lookup[0x76] = (Instruction) {"HLT", HLT, 1};
     opcode_lookup[0xC6] = (Instruction) {"ADI", ADI, 2};
     opcode_lookup[0xCE] = (Instruction) {"ACI", ACI, 2};
+
+    for (int i = 0; i < 256; i++) {
+        if (opcode_lookup[i].size == 0) continue;
+        printf("0x%02x: %s\n", i, opcode_lookup[i].name);
+    }
 
     count += 4;
 
@@ -437,7 +421,7 @@ void ADC(CPU* cpu, uint8_t opcode) { // Add register to A with carry
     uint8_t b = reg->value;
     uint8_t c = cpu->flag.value & 1;
     cpu->A.value = a + b + c;
-    if (DEBUG) printf("ADD %c\t\t// Add value %d and carry %d from register %c to A\n", reg->name, reg->value, c, reg->name);
+    if (DEBUG) printf("ADC %c\t\t// Add value %d and carry %d from register %c to A\n", reg->name, reg->value, c, reg->name);
     update_flags_add(cpu, opcode, a, reg->value);
 } 
 void ACI(CPU* cpu, uint8_t opcode) { // Add immediate to A with carry
@@ -445,7 +429,7 @@ void ACI(CPU* cpu, uint8_t opcode) { // Add immediate to A with carry
     uint8_t b = cpu->memory[cpu->program_counter + 1];
     uint8_t c = cpu->flag.value & 1;
     cpu->A.value += b + c;
-    if (DEBUG) printf("ADI %u\t\t// Add immediate value %u and carry %d to A\n", b, b, c);
+    if (DEBUG) printf("ACI %u\t\t// Add immediate value %u and carry %d to A\n", b, b, c);
     update_flags_add(cpu, opcode, a, b);
 }
 void SUB(CPU* cpu, uint8_t opcode) {} // Subtract register from A
