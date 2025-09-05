@@ -313,14 +313,12 @@ void initialize_opcode_lookup() {
     // Set all opcodes to be invalid
     for (int i = 0; i < 256; i++) opcode_lookup[i] = (Instruction) {"INVALID", HLT, 0}; // Size = 0 for invalid opcodes
 
-    int count = 0;
     // Create all MOV opcodes
     for (int i = 0x40; i <= 0x7F; i++) {
         char* dest_name = get_register_name((i >> 3) & 7);
         char* src_name = get_register_name(i & 7);
         opcode_lookup[i] = (Instruction) {"", MOV, 1};
         snprintf(opcode_lookup[i].name, sizeof(opcode_lookup[i].name), "MOV %s, %s", dest_name, src_name);
-        count++;
     }
 
     // Create all MVI opcodes
@@ -328,7 +326,6 @@ void initialize_opcode_lookup() {
         uint8_t opcode = (i << 3) | 6;
         opcode_lookup[opcode] = (Instruction) {"", MVI, 2};
         snprintf(opcode_lookup[opcode].name, sizeof(opcode_lookup[opcode].name), "MVI %s", get_register_name(i));
-        count++;
     }
 
     // Create all ADD opcodes
@@ -336,7 +333,6 @@ void initialize_opcode_lookup() {
         uint8_t opcode = 128 + i;
         opcode_lookup[opcode] = (Instruction) {"", ADD, 1};
         snprintf(opcode_lookup[opcode].name, sizeof(opcode_lookup[opcode].name), "ADD %s", get_register_name(i));
-        count++;
     }
 
     // Create all ADC opcodes
@@ -344,7 +340,6 @@ void initialize_opcode_lookup() {
         uint8_t opcode = 136 + i;
         opcode_lookup[opcode] = (Instruction) {"", ADC, 1};
         snprintf(opcode_lookup[opcode].name, sizeof(opcode_lookup[opcode].name), "ADC %s", get_register_name(i));
-        count++;
     }
 
     opcode_lookup[0x00] = (Instruction) {"NOP", NOP, 1};
@@ -353,8 +348,10 @@ void initialize_opcode_lookup() {
     opcode_lookup[0xCE] = (Instruction) {"ACI", ACI, 2};
     opcode_lookup[0xD3] = (Instruction) {"OUT", OUT, 2};
 
-    count += 5;
-
+    int count = 0;
+    for (int i = 0; i < 256; i++) { 
+        if (opcode_lookup[i].size != 0) count += 1;
+    }
     if (DEBUG) printf("\n%d/256 (%0.2f%%) opcodes implemented", count, (double) count / 2.56);
 
 }
