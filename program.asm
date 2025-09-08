@@ -50,4 +50,9 @@ NOP
 
 ; Test MOV back and HLT
 MOV E, A       ; Move final result to E
+
+OUT 1
+OUT 2
+OUT 3
+
 HLT

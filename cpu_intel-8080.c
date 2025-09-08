@@ -6,13 +6,17 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "registers.h"
-#include "logging.h"
+#include "colors.h"
 
 #define DEBUG true
 #define MAX_PROGRAM_SIZE 64
 #define MEMORY_WIDTH 8
 #define MAX_PORTS 256
 
+#define OPCODE_COLOR BLUE
+#define COMMENT_COLOR DIM
+#define IMMEDIATE_COLOR YELLOW
+#define REGISTER_COLOR YELLOW_BRIGHT
 
 // Structs
 typedef struct CPU {
@@ -46,6 +50,9 @@ void update_flags_add(CPU* cpu, uint8_t opcode, uint8_t reg_a_value, uint8_t add
 void update_flags_sub(CPU* cpu, uint8_t opcode, uint8_t reg_a_value, uint8_t added_value);
 void update_16_reg(CPU* cpu); // TODO: Implement. Updates BC, DE, and HL based off of their components
 void update_8_reg(CPU* cpu); // TODO: Implement. Updates the components of BC, DE, and HL
+void print_8bit_registers(CPU* cpu);
+void print_16bit_registers(CPU* cpu);
+void print_states_and_flags(CPU* cpu);
 char* get_register_name(uint8_t reg);
 int initialize_cpu(CPU* cpu, char* filename);
 uint8_t fetch(CPU* cpu);
@@ -185,29 +192,15 @@ int initialize_cpu(CPU* cpu, char* filename) {
 }
 
 void print_cpu_registers(CPU* cpu) {
-
-    printf("%c = %d, ", cpu->A.name, cpu->A.value);
-    printf("%c = %d, ", cpu->B.name, cpu->B.value);
-    printf("%c = %d, ", cpu->C.name, cpu->C.value);
-    printf("%c = %d, ", cpu->D.name, cpu->D.value);
-    printf("%c = %d, ", cpu->E.name, cpu->E.value);
-    printf("%c = %d, ", cpu->H.name, cpu->H.value);
-    printf("%c = %d, ", cpu->L.name, cpu->L.value);
-    printf("%c = %d\n", cpu->M.name, cpu->M.value);
-
-    printf("%s = 0x%04x, ", cpu->BC.name, cpu->BC.value);
-    printf("%s = 0x%04x, ", cpu->DE.name, cpu->DE.value);
-    printf("%s = 0x%04x\n", cpu->HL.name, cpu->HL.value);
-
-    printf("SP = %d, PC = %d\n", cpu->stack_pointer, cpu->program_counter);
-    // TODO: Split the Flag print into its multiple flags
-    printf("Flag = ");
-    print_binary(cpu->flag.value);
-    printf(" (0x%02x), Running = %d",cpu->flag.value, cpu->running); 
+    print_8bit_registers(cpu);
+    print_16bit_registers(cpu);
+    print_states_and_flags(cpu);
 }
+    
 
 void print_cpu_memory(CPU* cpu) {
     int last_index = -1;
+
     for (int i = MAX_PROGRAM_SIZE - 1; i >= 0; i--) {
         if (cpu->memory[i] != 0) {
             last_index = i + 1;
@@ -215,13 +208,20 @@ void print_cpu_memory(CPU* cpu) {
         }
     }
 
+    int last_row = last_index / MEMORY_WIDTH;
 
     for (int i = 0; i < MAX_PROGRAM_SIZE; i++) {
         // Address block
+        int current_row = i / MEMORY_WIDTH;
+        if (current_row <= last_row) printf("%s", GREEN);
+        else printf("%s", DIM);
+
         if (i % MEMORY_WIDTH == 0) printf("0x%0*x\t", MEMORY_WIDTH, i);
+        printf("%s", RESET);
 
         // Actual data
         if (i < last_index) printf("%s", GREEN);
+        else printf("%s", DIM);
         printf("%02x %s", cpu->memory[i], RESET);
         if (i % MEMORY_WIDTH == MEMORY_WIDTH - 1) printf("\n");
     }
@@ -233,6 +233,31 @@ void print_binary(uint8_t byte) {
         int num = (byte >> i) & 1;
         printf("%d", num);
     }
+}
+
+void print_8bit_registers(CPU* cpu) {
+    printf("%s%c = %s%d, ", REGISTER_COLOR, cpu->A.name, IMMEDIATE_COLOR, cpu->A.value);
+    printf("%s%c = %s%d, ", REGISTER_COLOR, cpu->B.name, IMMEDIATE_COLOR, cpu->B.value);
+    printf("%s%c = %s%d, ", REGISTER_COLOR, cpu->C.name, IMMEDIATE_COLOR, cpu->C.value);
+    printf("%s%c = %s%d, ", REGISTER_COLOR, cpu->D.name, IMMEDIATE_COLOR, cpu->D.value);
+    printf("%s%c = %s%d, ", REGISTER_COLOR, cpu->E.name, IMMEDIATE_COLOR, cpu->E.value);
+    printf("%s%c = %s%d, ", REGISTER_COLOR, cpu->H.name, IMMEDIATE_COLOR, cpu->H.value);
+    printf("%s%c = %s%d, ", REGISTER_COLOR, cpu->L.name, IMMEDIATE_COLOR, cpu->L.value);
+    printf("%s%c = %s%d\n%s", REGISTER_COLOR, cpu->M.name, IMMEDIATE_COLOR, cpu->M.value, RESET);
+}
+
+void print_16bit_registers(CPU* cpu) {
+    printf("%s%s = %s0x%04x, ", REGISTER_COLOR, cpu->BC.name, IMMEDIATE_COLOR, cpu->BC.value);
+    printf("%s%s = %s0x%04x, ", REGISTER_COLOR, cpu->DE.name, IMMEDIATE_COLOR, cpu->DE.value);
+    printf("%s%s = %s0x%04x\n%s", REGISTER_COLOR, cpu->HL.name, IMMEDIATE_COLOR, cpu->HL.value, RESET);
+}
+
+void print_states_and_flags(CPU* cpu) {
+    printf("%sSP = %d, PC = %d, ", MAGENTA, cpu->stack_pointer, cpu->program_counter);
+    // TODO: Split the Flag print into its multiple flags
+    printf("Flag = ");
+    print_binary(cpu->flag.value);
+    printf(" (0x%02x), Running = %d%s",cpu->flag.value, cpu->running, RESET); 
 }
 
 uint8_t fetch(CPU* cpu) {
@@ -419,11 +444,11 @@ void initialize_opcode_lookup() {
 
 // Opcode function defenitions
 void NOP(CPU* cpu, uint8_t opcode) {
-    if (DEBUG) printf("NOP\t\t// No operation\n");
+    if (DEBUG) printf("%sNOP\t\t// No operation\n%s", DIM, RESET);
 }
 void HLT(CPU* cpu, uint8_t opcode) { 
     cpu->running = false;
-    if (DEBUG) printf("HLT\t\t// Stop the CPU\n");
+    if (DEBUG) printf("%s%sHLT%s%s\t\t// Stop the CPU\n%s", DIM, RED, RESET, DIM, RESET);
 }
 
 // Data management
@@ -431,7 +456,7 @@ void MOV(CPU* cpu, uint8_t opcode) {
     uint8_register* dest_ptr = get_register_ptr(cpu, (opcode >> 3) & 7);
     uint8_register* src_ptr = get_register_ptr(cpu, opcode & 7);
     dest_ptr->value = src_ptr->value;
-    if (DEBUG) printf("MOV %c, %c\t// Copy value %d from register %c to register %c\n", dest_ptr->name, src_ptr->name, src_ptr->value,src_ptr->name, dest_ptr->name);
+    if (DEBUG) printf("%sMOV %s%c, %c\t%s%s// Copy value %d from register %c to register %c\n%s", OPCODE_COLOR, REGISTER_COLOR, dest_ptr->name, src_ptr->name, RESET, DIM, src_ptr->value,src_ptr->name, dest_ptr->name, RESET);
     update_uint16_registers(cpu);
 }
 void MVI(CPU* cpu, uint8_t opcode) {
@@ -440,7 +465,7 @@ void MVI(CPU* cpu, uint8_t opcode) {
     uint8_register* dest_ptr = get_register_ptr(cpu, reg_number);
     int ival = cpu->memory[cpu->program_counter + 1];
     dest_ptr->value = ival;
-    if (DEBUG) printf("MVI %c, %d\t// Copy immediate value %d to register %c\n", dest_ptr->name, ival, ival, dest_ptr->name);
+    if (DEBUG) printf("%sMVI %s%c, %s%d\t%s%s// Copy immediate value %d to register %c\n%s", OPCODE_COLOR, REGISTER_COLOR, dest_ptr->name, IMMEDIATE_COLOR, ival, RESET, DIM, ival, dest_ptr->name, RESET);
 
     // TODO: Potentially update the register pair possibily affected by this move
     // Now to update any potential register pairs that could of changed from this
@@ -455,14 +480,14 @@ void ADD(CPU* cpu, uint8_t opcode) { // Add register to A
     uint8_t a = cpu->A.value;
     uint8_t b = reg->value;
     cpu->A.value += reg->value;
-    if (DEBUG) printf("ADD %c\t\t// Add value %d from register %c to A\n", reg->name, reg->value, reg->name);
+    if (DEBUG) printf("%sADD %s%c\t%s\t%s// Add value %d from register %c to A\n%s", OPCODE_COLOR, REGISTER_COLOR, reg->name, RESET, DIM, reg->value, reg->name, RESET);
     update_flags_add(cpu, opcode, a, reg->value);
 }
 void ADI(CPU* cpu, uint8_t opcode) { // Add immediate to A
     uint8_t a = cpu->A.value;
     uint8_t b = cpu->memory[cpu->program_counter + 1];
     cpu->A.value += b;
-    if (DEBUG) printf("ADI %u\t\t// Add immediate value %u to A\n", b, b);
+    if (DEBUG) printf("%sADI %s%u\t%s\t%s// Add immediate value %u to A\n%s", OPCODE_COLOR, IMMEDIATE_COLOR, b, RESET, DIM, b, RESET);
     update_flags_add(cpu, opcode, a, b);
 } 
 void ADC(CPU* cpu, uint8_t opcode) { // Add register to A with carry
@@ -471,7 +496,7 @@ void ADC(CPU* cpu, uint8_t opcode) { // Add register to A with carry
     uint8_t b = reg->value;
     uint8_t c = cpu->flag.value & 1;
     cpu->A.value = a + b + c;
-    if (DEBUG) printf("ADC %c\t\t// Add value %d and carry %d from register %c to A\n", reg->name, reg->value, c, reg->name);
+    if (DEBUG) printf("%sADC %s%c\t%s\t%s// Add value %d and carry %d from register %c to A\n%s", OPCODE_COLOR, REGISTER_COLOR, reg->name, RESET, DIM, reg->value, c, reg->name, RESET);
     update_flags_add(cpu, opcode, a, reg->value);
 } 
 void ACI(CPU* cpu, uint8_t opcode) { // Add immediate to A with carry
@@ -479,7 +504,7 @@ void ACI(CPU* cpu, uint8_t opcode) { // Add immediate to A with carry
     uint8_t b = cpu->memory[cpu->program_counter + 1];
     uint8_t c = cpu->flag.value & 1;
     cpu->A.value += b + c;
-    if (DEBUG) printf("ACI %u\t\t// Add immediate value %u and carry %d to A\n", b, b, c);
+    if (DEBUG) printf("%sACI %s%u\t%s\t%s// Add immediate value %u and carry %d to A\n%s", OPCODE_COLOR, IMMEDIATE_COLOR, b, RESET, DIM, b, c, RESET);
     update_flags_add(cpu, opcode, a, b);
 }
 void SUB(CPU* cpu, uint8_t opcode) { // Subtract register from A
@@ -487,14 +512,14 @@ void SUB(CPU* cpu, uint8_t opcode) { // Subtract register from A
     uint8_t a = cpu->A.value;
     uint8_t b = reg->value;
     cpu->A.value -= reg->value;
-    if (DEBUG) printf("SUB %c\t\t// Subtract value %d from register %c from A\n", reg->name, reg->value, reg->name);
+    if (DEBUG) printf("%sSUB %s%c\t\t%s%s// Subtract value %d from register %c from A\n%s", OPCODE_COLOR, REGISTER_COLOR, reg->name, RESET, COMMENT_COLOR, reg->value, reg->name, RESET);
     update_flags_sub(cpu, opcode, a, reg->value);
 } 
 void SUI(CPU* cpu, uint8_t opcode) { // Subtract immediate from A
     uint8_t a = cpu->A.value;
     uint8_t b = cpu->memory[cpu->program_counter + 1];
     cpu->A.value -= b;
-    if (DEBUG) printf("SUI %u\t\t// Subtract immediate value %u from A\n", b, b);
+    if (DEBUG) printf("%sSUI %s%u\t\t%s%s// Subtract immediate value %u from A\n%s", OPCODE_COLOR, IMMEDIATE_COLOR, b, RESET, COMMENT_COLOR, b, RESET);
     update_flags_sub(cpu, opcode, a, b);
 } 
 void SBB(CPU* cpu, uint8_t opcode) { // Subtract register from A with borrow
@@ -503,7 +528,7 @@ void SBB(CPU* cpu, uint8_t opcode) { // Subtract register from A with borrow
     uint8_t b = reg->value;
     uint8_t c = cpu->flag.value & 1;
     cpu->A.value = a - b - c;
-    if (DEBUG) printf("SBB %c\t\t// Subtract value %d and borrow %d from register %c from A\n", reg->name, reg->value, c, reg->name);
+    if (DEBUG) printf("%sSBB %s%c\t\t%s%s// Subtract value %d and borrow %d from register %c from A\n%s", OPCODE_COLOR, REGISTER_COLOR, reg->name, RESET, COMMENT_COLOR, reg->value, c, reg->name, RESET);
     update_flags_sub(cpu, opcode, a, reg->value);
 } 
 void SBI(CPU* cpu, uint8_t opcode) { // Subtract immediate from A with borrow
@@ -511,7 +536,7 @@ void SBI(CPU* cpu, uint8_t opcode) { // Subtract immediate from A with borrow
     uint8_t b = cpu->memory[cpu->program_counter + 1];
     uint8_t c = cpu->flag.value & 1;
     cpu->A.value -= b - c;
-    if (DEBUG) printf("SBB %u\t\t// Subtract immediate value %u and borrow %u from A\n", b, b, c);
+    if (DEBUG) printf("%sSBB %s%u\t\t%s%s// Subtract immediate value %u and borrow %u from A\n%s", OPCODE_COLOR, IMMEDIATE_COLOR, b, RESET, COMMENT_COLOR, b, c, RESET);
     update_flags_sub(cpu, opcode, a, b);
 } 
 void INR(CPU* cpu, uint8_t opcode) {} // Increment register
@@ -529,36 +554,27 @@ void CPI(CPU* cpu, uint8_t opcode) {} // Compare immediate with A
 void OUT(CPU* cpu, uint8_t opcode) { // Write A to output port
     uint8_t port_number = cpu->memory[cpu->program_counter + 1];
     cpu->ports[port_number] = cpu->A.value;
-    if (DEBUG) printf("OUT %d\t\t// ", port_number);
+    if (DEBUG) printf("%sOUT %d\t\t// ", DIM, port_number);
     if (port_number == 0) {
-        if (DEBUG) printf("Write register A (0x%02x) to output\n", cpu->A.value);
+        if (DEBUG) printf("Write register A (0x%02x) to output\n%s", cpu->A.value, RESET);
         printf("OUTPUT: %u\n", cpu->A.value);
     }
     else if (port_number == 1) { // Print all main 8-bit registers
-        if (DEBUG) printf("Write all 8-bit registers to output\n");
-        printf("%c = %d, ", cpu->A.name, cpu->A.value);
-        printf("%c = %d, ", cpu->B.name, cpu->B.value);
-        printf("%c = %d, ", cpu->C.name, cpu->C.value);
-        printf("%c = %d, ", cpu->D.name, cpu->D.value);
-        printf("%c = %d, ", cpu->E.name, cpu->E.value);
-        printf("%c = %d, ", cpu->H.name, cpu->H.value);
-        printf("%c = %d, ", cpu->L.name, cpu->L.value);
-        printf("%c = %d\n", cpu->M.name, cpu->M.value);
+        if (DEBUG) printf("Write all 8-bit registers to output\n%s", RESET);
+        print_8bit_registers(cpu);
     }
     else if (port_number == 2) { // Print all main 16-bit registers
-        if (DEBUG) printf("Write all 16-bit registers to output\n");
-        printf("%s = 0x%04x, ", cpu->BC.name, cpu->BC.value);
-        printf("%s = 0x%04x, ", cpu->DE.name, cpu->DE.value);
-        printf("%s = 0x%04x\n", cpu->HL.name, cpu->HL.value);
+        if (DEBUG) printf("Write all 16-bit registers to output\n%s", RESET);
+        print_16bit_registers(cpu);
     }
 
     else if (port_number == 3) { // Print all other CPU information
-        if (DEBUG) printf("Write all SP, PC, flag, and state to output to output\n");
-        printf("SP = %d, PC = %d, ", cpu->stack_pointer, cpu->program_counter);
-        printf("Flag = ");
-        print_binary(cpu->flag.value);
-        printf(" (0x%02x), Running = %d\n",cpu->flag.value, cpu->running); 
+        if (DEBUG) printf("Write all SP, PC, flag, and state to output to output\n%s", RESET);
+        print_states_and_flags(cpu);
+        printf("\n");
     }
+
+    if (DEBUG) printf("%s", RESET);
 } 
 
 
