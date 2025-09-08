@@ -1,4 +1,3 @@
-import argparse
 from errors import *
 
 class Command:
@@ -112,26 +111,35 @@ def read_file(filename: str, verbose = False):
     return commands
         
 def write_file(filename: str, commands: list, verbose = False) -> int:
-    try:
-        with open(filename, "br+") as file:
-            if (verbose): print(f"{GREEN}Log:{RESET} Writing to file {filename}")
-            hex_list = []
-            for i in commands:
-                opcode_list = i.generate_opcode()
-                for opcode in opcode_list:
-                    hex_list.append(int("0x" + opcode, 16))
-            
-            hex_list.append(int("0x76", 16)) # Manually add HLT to end
+    try: 
+        file = open(filename, "br+")
+        if (verbose): print(f"{GREEN}Log:{RESET} Writing to file {filename}")
+        hex_list = []
+        for i in commands:
+            opcode_list = i.generate_opcode()
+            for opcode in opcode_list:
+                print(opcode)
+                hex_list.append(int("0x" + opcode, 16))
         
-            byte_list = bytearray(hex_list)
-            file.write(byte_list)
+        hex_list.append(int("0x76", 16)) # Manually add HLT to end
+    
+        byte_list = bytearray(hex_list)
+        file.write(byte_list)
         if (verbose): print(f"{GREEN}Log:{RESET} Wrote {len(byte_list)} bytes to {filename}")
+        file.close()
+    
     except FileNotFoundError:
         if (verbose): print(f"{YELLOW}Warning:{RESET} creating file {filename}")
-        open(filename, "w") # Maybe need error checking here, that's why I'm opening the file...
+        f = open(filename, "w") # Create the file and try again
+        f.close()
         write_file(filename, commands, verbose)
+    
+    except ValueError as err:
+        print(f"Got exception {type(err).__name__}, exitting with code 3 ({err})")
+        return 3
+    
     except Exception as err:
-        print(f"Got exception {err}") 
+        print(f"Got exception {err}, {type(err).__name__}, exitting with code 1") 
         return 1
         
     return 0

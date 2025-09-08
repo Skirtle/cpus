@@ -7,7 +7,7 @@
 #include <stdbool.h>
 #include "registers.h"
 
-#define DEBUG true
+#define DEBUG false
 #define MAX_PROGRAM_SIZE 64
 #define MEMORY_WIDTH 8
 #define MAX_PORTS 256
@@ -507,8 +507,27 @@ void OUT(CPU* cpu, uint8_t opcode) { // Write A to output port
     cpu->ports[port_number] = cpu->A.value;
     if (DEBUG) printf("OUT %d\t\t// Write 0x%02x to output port %u\n",port_number, cpu->A.value, port_number);
     if (port_number == 0) printf("OUTPUT: %u\n", cpu->A.value);
-    else if (port_number == 1) {
-        print_cpu_registers(cpu);
+    else if (port_number == 1) { // Print all main 8-bit registers
+        printf("%c = %d, ", cpu->A.name, cpu->A.value);
+        printf("%c = %d, ", cpu->B.name, cpu->B.value);
+        printf("%c = %d, ", cpu->C.name, cpu->C.value);
+        printf("%c = %d, ", cpu->D.name, cpu->D.value);
+        printf("%c = %d, ", cpu->E.name, cpu->E.value);
+        printf("%c = %d, ", cpu->H.name, cpu->H.value);
+        printf("%c = %d, ", cpu->L.name, cpu->L.value);
+        printf("%c = %d\n", cpu->M.name, cpu->M.value);
+    }
+    else if (port_number == 2) { // Print all main 16-bit registers
+        printf("%s = 0x%04x, ", cpu->BC.name, cpu->BC.value);
+        printf("%s = 0x%04x, ", cpu->DE.name, cpu->DE.value);
+        printf("%s = 0x%04x\n", cpu->HL.name, cpu->HL.value);
+    }
+
+    else if (port_number == 3) { // Print all other CPU information
+        printf("SP = %d, PC = %d, ", cpu->stack_pointer, cpu->program_counter);
+        printf("Flag = ");
+        print_binary(cpu->flag.value);
+        printf(" (0x%02x), Running = %d\n",cpu->flag.value, cpu->running); 
     }
 } 
 

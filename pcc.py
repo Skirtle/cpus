@@ -48,8 +48,9 @@ if __name__ == "__main__":
         commands = sa.read_file(in_filename, args.verbose)
         write_code = sa.write_file(out_filename, commands, args.verbose)
     
-        if (write_code == 1): print(f"{BOLD}pcc:{RESET}{RED} fatal error:{RESET} could not open file {out_filename} to write\nassembly terminate.")
-        elif (write_code == 2): print(f"{BOLD}pcc:{RESET}{RED} fatal error:{RESET} could not create file {out_filename}\nassembly terminate.")
+        if (write_code == 1): print(f"{BOLD}pcc:{RESET}{RED} fatal error:{RESET} could not open file {out_filename} to write\nassembly terminated.")
+        elif (write_code == 2): print(f"{BOLD}pcc:{RESET}{RED} fatal error:{RESET} could not create file {out_filename}\nassembly terminated.")
+        elif (write_code == 3): print(f"{BOLD}pcc:{RESET}{RED} fatal error:{RESET} could not write to file {out_filename}\nassembly terminated.")
     
     if (args.compile_c):
         if (args.verbose): print(f"{GREEN}LOG:{RESET} Recompiling C code with options '{args.compile_args}'")
