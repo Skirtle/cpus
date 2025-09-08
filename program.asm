@@ -1,58 +1,15 @@
-; NOP
-; MVI A, 0  ; A = 0
-; MVI B, 1  ; B = 1
-; MVI C, 2  ; C = 2
-; ADD B     ; A = A + B = 0 + 1 = 1
-; ADD C     ; A = A + C = 1 + 2 = 3
-; ADI 10    ; A = A + 10 = 3 + 10 = 13
-; SUB C     ; A = A - C = 13 - 2 = 11
-; SUB B     ; A = A - B = 11 - 1 = 10
-; MOV D, A  ; D = A = 10
-; ADI 245   ; A = A + 245 = 10 + 245 = 255
-; ADI 1     ; A = A + 1 = 255 + 1 = 0, AC = 1, CY = 1
-; ADC B     ; A = A + 1 + CY = 0 + 1 + 1 = 2
-; ADI 254   ; A = A + 254 = 2 + 254 = 0, AC = 1, CY = 1
-; ACI 1     ; A = A + 1 + CY = 0 + 1 + 1 = 2
-; SUI 3     ; A = A - 3 = 2 - 3 = 255, AC = 1, CY = 1
-; Add the sub borrow variants here
-; SBB A     ; A = A - A - CY = 255 - 255 - 1 = 255
-; SBI 1     ; A = A - 1 - CY = 255 - 1 - 1 = 253. I hope this is right...
-; OUT 1
-; HLT
-
-
-; Initialize registers
-MVI A, 10      ; A = 10
-MVI B, 5       ; B = 5
-MVI C, 0       ; C = 0
-
-; Test MOV
-MOV C, B       ; C = B (5)
-MOV D, A       ; D = A (10)
-
-; Test ADD / ADI / ADC
-ADD B          ; A = 10 + 5 = 15
-ADI 3          ; A = 15 + 3 = 18
-MVI B, 200     ; Set B for ADC
-ADC B          ; A = 18 + 200 + carry
-ACI 50         ; Add immediate with carry
-
-; Test SUB / SUI / SBI / SBB
-SUB B          ; A = A - B
-SUI 10         ; A = A - 10
-MVI B, 20      ; Set B for SBB
-SBB B          ; A = A - B - carry
-SBI 5          ; Subtract immediate with borrow
-
-; Test NOP
-NOP
-NOP
-
-; Test MOV back and HLT
-MOV E, A       ; Move final result to E
-
-OUT 1
-OUT 2
-OUT 3
-
+MVI A, 0
+MVI B, 1
+MVI C, 1
+MVI D, 1
+MVI E, 1
+MVI H, 1
+MVI L, 1
+ADD B
+ADD C
+ADD D
+ADD E
+ADD H
+ADD L
+OUT 0
 HLT

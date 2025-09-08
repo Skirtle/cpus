@@ -102,9 +102,9 @@ def read_file(filename: str, verbose = False):
             op1 = None
             op2 = None
             
-            if (len(split_code) >= 1): command = split_code[0]
-            if (len(split_code) >= 2): op1 = split_code[1]
-            if (len(split_code) >= 3): op2 = split_code[2]
+            if (len(split_code) >= 1): command = split_code[0].upper()
+            if (len(split_code) >= 2): op1 = split_code[1].upper()
+            if (len(split_code) >= 3): op2 = split_code[2].upper()
             
             full_command = Command(command, op1, op2)
             commands.append(full_command)
