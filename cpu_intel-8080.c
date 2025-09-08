@@ -263,20 +263,11 @@ void update_uint16_registers(CPU* cpu) {
 }
 
 void update_flags_add(CPU* cpu, uint8_t opcode, uint8_t reg_a_value, uint8_t added_value) {
-    /*
-    * | S | Z | 0 | AC | 0 | P | 1 | CY |
-    * S = Sign bit, bit7 == 1, mask = 0x80
-    * Z = Zero bit, byte == 0, mask = 0x40
-    * A = AC, does low nibble overflow/borrow to/from high nibble, mask = 0x10
-    * P = Even bit, bit0 == 0, mask = 0x04
-    * C = CY, does whole byte overflow/borrow, mask = 0x01
-    */
-
     uint8_t curr_flags = cpu->flag.value;
     uint8_t a = reg_a_value;
     uint8_t b = added_value;
     uint8_t c = 0;
-    if ((0x88 <= opcode && opcode <= 0x8F) || opcode == 0xCE) c = 1; // If the opcode is for ADC (0x88-0x8F) or ACI (0xCE)
+    if ((0x88 <= opcode && opcode <= 0x8F) || opcode == 0xCE) c = 1; // If the opcode is for ADC (0x88-0x8F) or ACI (0xCE) 
     c *= cpu->flag.value & 1;
 
     // S.Z.P.A.C.
@@ -296,15 +287,14 @@ void update_flags_add(CPU* cpu, uint8_t opcode, uint8_t reg_a_value, uint8_t add
     }
 
     // Set Pairty to 1 if even, otherwise 0
-    // TODO: Check if the SUM of the bits is even, not the number calculated
     if (parity % 2 == 0)  curr_flags |= 0x04;
     else curr_flags &= ~0x04;
 
-    // Set CY to 1 if overflow/borrow, otherwise 0
-    if ((uint16_t)a + (uint16_t)b + c >= 0xFF) curr_flags |= 0x01;
+    // Set CY to 1 if overflow, otherwise 0
+    if ((uint16_t)a + (uint16_t)b + c > 0xFF) curr_flags |= 0x01;
     else curr_flags &= ~0x01;
 
-    // Set AC to 1 if nibble overflow/borrow, otherwise 0
+    // Set AC to 1 if nibble overflow, otherwise 0
     if ((a & 0x0F) + (b & 0x0F) + c > 0x0F) curr_flags |= 0x10;
     else curr_flags &= ~ 0x10;
 
@@ -312,7 +302,42 @@ void update_flags_add(CPU* cpu, uint8_t opcode, uint8_t reg_a_value, uint8_t add
 }
 
 void update_flags_sub(CPU* cpu, uint8_t opcode, uint8_t reg_a_value, uint8_t added_value) {
-    printf("\tTODO: Fix update_flags_sub. opcode: 0x%02x (%s), reg a: %u, val added: %u\n", opcode, opcode_lookup[opcode].name, reg_a_value, added_value);
+    uint8_t curr_flags = cpu->flag.value;
+    uint8_t a = reg_a_value;
+    uint8_t b = added_value;
+    uint8_t c = 0;
+    if ((0x98 <= opcode && opcode <= 0x9F) || opcode == 0xDE) c = 1;
+    c *= cpu->flag.value & 1;
+
+    // S.Z.P.A.C.
+    // Set Sign to 1 if negative, otherwise 0
+    if ((cpu->A.value & 0x80) == 0x80)  curr_flags |= 0x80;
+    else curr_flags &= ~0x80;
+
+    // Set Zero to 1 if equal to 0, otherwise 0
+    if (cpu->A.value == 0) curr_flags |= 0x40;
+    else curr_flags &= ~0x40;
+
+    int parity = 0;
+    int temp = cpu->A.value;
+    for (int i = 0; i <= 7; i++) {
+        parity += temp & 1;
+        temp >>= 1;
+    }
+
+    // Set Pairty to 1 if even, otherwise 0
+    if (parity % 2 == 0)  curr_flags |= 0x04;
+    else curr_flags &= ~0x04;
+
+    // Set CY to 1 if borrow, otherwise 0
+    if (a < b + c) curr_flags |= 0x01;
+    else curr_flags &= ~0x01;
+
+    // Set AC to 1 if nibble borrow, otherwise 0
+    if ((a & 0x0F) < ((b + c) & 0x0F)) curr_flags |= 0x10;
+    else curr_flags &= ~ 0x10;
+
+    cpu->flag.value = curr_flags;
 }
 
 // Opcode table
@@ -460,10 +485,10 @@ void SUI(CPU* cpu, uint8_t opcode) { // Subtract immediate from A
     update_flags_sub(cpu, opcode, a, b);
 } 
 void SBB(CPU* cpu, uint8_t opcode) { // Subtract register from A with borrow
-
+    printf("TODO: Implement SBB\n");
 } 
 void SBI(CPU* cpu, uint8_t opcode) { // Subtract immediate from A with borrow
-
+    printf("TODO: Implement SBI\n");
 } 
 void INR(CPU* cpu, uint8_t opcode) {} // Increment register
 void DCR(CPU* cpu, uint8_t opcode) {} // Decrement register
