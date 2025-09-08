@@ -123,7 +123,9 @@ def write_file(filename: str, commands: list, verbose = False) -> int:
                 new_opcode = int(opcode, 16)
                 hex_list.append(new_opcode)
         
-        if (hex_list[-1] != "0x76"): hex_list.append(int("0x76", 16)) # Manually add HLT to end
+        print(hex_list)
+        if (hex_list[-1] != 118): hex_list.append(int("0x76", 16)) # Manually add HLT to end
+        
         byte_list = bytearray(hex_list)
         file.write(byte_list)
         if (verbose): print(f"{GREEN}Log:{RESET} Wrote {len(byte_list)} bytes to {filename}")

@@ -6,8 +6,9 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "registers.h"
+#include "logging.h"
 
-#define DEBUG false
+#define DEBUG true
 #define MAX_PROGRAM_SIZE 64
 #define MEMORY_WIDTH 8
 #define MAX_PORTS 256
@@ -207,9 +208,12 @@ void print_cpu_registers(CPU* cpu) {
 
 void print_cpu_memory(CPU* cpu) {
     for (int i = 0; i < MAX_PROGRAM_SIZE; i++) {
+        // Address block
         if (i % MEMORY_WIDTH == 0) printf("0x%0*x\t", MEMORY_WIDTH, i);
 
-        printf("%02x ", cpu->memory[i]);
+        // Actual data
+        if (cpu->memory[i + 1] != 0 || cpu->memory[i] != 0) printf("%s", GREEN);
+        printf("%02x %s", cpu->memory[i], RESET);
         if (i % MEMORY_WIDTH == MEMORY_WIDTH - 1) printf("\n");
     }
 }
@@ -474,21 +478,21 @@ void SUB(CPU* cpu, uint8_t opcode) { // Subtract register from A
     uint8_t a = cpu->A.value;
     uint8_t b = reg->value;
     cpu->A.value -= reg->value;
-    if (DEBUG) printf("SUB %c\t\t// Subtract value %d from register %c to A\n", reg->name, reg->value, reg->name);
+    if (DEBUG) printf("SUB %c\t\t// Subtract value %d from register %c from A\n", reg->name, reg->value, reg->name);
     update_flags_sub(cpu, opcode, a, reg->value);
 } 
 void SUI(CPU* cpu, uint8_t opcode) { // Subtract immediate from A
     uint8_t a = cpu->A.value;
     uint8_t b = cpu->memory[cpu->program_counter + 1];
     cpu->A.value -= b;
-    if (DEBUG) printf("SUI %u\t\t// Subtract immediate value %u to A\n", b, b);
+    if (DEBUG) printf("SUI %u\t\t// Subtract immediate value %u from A\n", b, b);
     update_flags_sub(cpu, opcode, a, b);
 } 
 void SBB(CPU* cpu, uint8_t opcode) { // Subtract register from A with borrow
-    printf("TODO: Implement SBB\n");
+    printf("%sTODO: Implement SBB\n%s", RED, RESET);
 } 
 void SBI(CPU* cpu, uint8_t opcode) { // Subtract immediate from A with borrow
-    printf("TODO: Implement SBI\n");
+    printf("%sTODO: Implement SBI\n%s", RED, RESET);
 } 
 void INR(CPU* cpu, uint8_t opcode) {} // Increment register
 void DCR(CPU* cpu, uint8_t opcode) {} // Decrement register
@@ -505,9 +509,13 @@ void CPI(CPU* cpu, uint8_t opcode) {} // Compare immediate with A
 void OUT(CPU* cpu, uint8_t opcode) { // Write A to output port
     uint8_t port_number = cpu->memory[cpu->program_counter + 1];
     cpu->ports[port_number] = cpu->A.value;
-    if (DEBUG) printf("OUT %d\t\t// Write 0x%02x to output port %u\n",port_number, cpu->A.value, port_number);
-    if (port_number == 0) printf("OUTPUT: %u\n", cpu->A.value);
+    if (DEBUG) printf("OUT %d\t\t// ", port_number);
+    if (port_number == 0) {
+        if (DEBUG) printf("Write register A (0x%02x) to output\n", cpu->A.value);
+        printf("OUTPUT: %u\n", cpu->A.value);
+    }
     else if (port_number == 1) { // Print all main 8-bit registers
+        if (DEBUG) printf("Write all 8-bit registers to output\n");
         printf("%c = %d, ", cpu->A.name, cpu->A.value);
         printf("%c = %d, ", cpu->B.name, cpu->B.value);
         printf("%c = %d, ", cpu->C.name, cpu->C.value);
@@ -518,12 +526,14 @@ void OUT(CPU* cpu, uint8_t opcode) { // Write A to output port
         printf("%c = %d\n", cpu->M.name, cpu->M.value);
     }
     else if (port_number == 2) { // Print all main 16-bit registers
+        if (DEBUG) printf("Write all 16-bit registers to output\n");
         printf("%s = 0x%04x, ", cpu->BC.name, cpu->BC.value);
         printf("%s = 0x%04x, ", cpu->DE.name, cpu->DE.value);
         printf("%s = 0x%04x\n", cpu->HL.name, cpu->HL.value);
     }
 
     else if (port_number == 3) { // Print all other CPU information
+        if (DEBUG) printf("Write all SP, PC, flag, and state to output to output\n");
         printf("SP = %d, PC = %d, ", cpu->stack_pointer, cpu->program_counter);
         printf("Flag = ");
         print_binary(cpu->flag.value);
