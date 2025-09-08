@@ -42,6 +42,7 @@ void print_binary(uint8_t byte);
 void initialize_opcode_lookup();
 void update_uint16_registers(CPU* cpu);
 void update_flags_add(CPU* cpu, uint8_t opcode, uint8_t reg_a_value, uint8_t added_value);
+void update_flags_sub(CPU* cpu, uint8_t opcode, uint8_t reg_a_value, uint8_t added_value);
 char* get_register_name(uint8_t reg);
 int initialize_cpu(CPU* cpu, char* filename);
 uint8_t fetch(CPU* cpu);
@@ -308,6 +309,10 @@ void update_flags_add(CPU* cpu, uint8_t opcode, uint8_t reg_a_value, uint8_t add
     cpu->flag.value = curr_flags;
 }
 
+void update_flags_sub(CPU* cpu, uint8_t opcode, uint8_t reg_a_value, uint8_t added_value) {
+    printf("\tTODO: Fix update_flags_sub. opcode: 0x%02x (%s), reg a: %u, val added: %u\n", opcode, opcode_lookup[opcode].name, reg_a_value, added_value);
+}
+
 // Opcode table
 void initialize_opcode_lookup() {
     // Set all opcodes to be invalid
@@ -342,11 +347,27 @@ void initialize_opcode_lookup() {
         snprintf(opcode_lookup[opcode].name, sizeof(opcode_lookup[opcode].name), "ADC %s", get_register_name(i));
     }
 
+    // Create all SUB opcodes
+    for (int i = 0; i <= 7; i++) {
+        uint8_t opcode = 144 + i;
+        opcode_lookup[opcode] = (Instruction) {"", SUB, 1};
+        snprintf(opcode_lookup[opcode].name, sizeof(opcode_lookup[opcode].name), "SUB %s", get_register_name(i));
+    }
+
+    // Create all SBB opcodes
+    for (int i = 0; i <= 7; i++) {
+        uint8_t opcode = 152 + i;
+        opcode_lookup[opcode] = (Instruction) {"", SBB, 1};
+        snprintf(opcode_lookup[opcode].name, sizeof(opcode_lookup[opcode].name), "SBB %s", get_register_name(i));
+    }
+
     opcode_lookup[0x00] = (Instruction) {"NOP", NOP, 1};
     opcode_lookup[0x76] = (Instruction) {"HLT", HLT, 1};
     opcode_lookup[0xC6] = (Instruction) {"ADI", ADI, 2};
     opcode_lookup[0xCE] = (Instruction) {"ACI", ACI, 2};
     opcode_lookup[0xD3] = (Instruction) {"OUT", OUT, 2};
+    opcode_lookup[0xD6] = (Instruction) {"SUI", SUI, 2};
+    opcode_lookup[0xDE] = (Instruction) {"SBI", SBI, 2};
 
     int count = 0;
     for (int i = 0; i < 256; i++) { 
@@ -421,18 +442,27 @@ void ACI(CPU* cpu, uint8_t opcode) { // Add immediate to A with carry
     if (DEBUG) printf("ACI %u\t\t// Add immediate value %u and carry %d to A\n", b, b, c);
     update_flags_add(cpu, opcode, a, b);
 }
-void SUB(CPU* cpu, uint8_t opcode) {
-    
-} // Subtract register from A
-void SUI(CPU* cpu, uint8_t opcode) {
-    
-} // Subtract immediate from A
-void SBB(CPU* cpu, uint8_t opcode) {
-    
-} // Subtract register from A with borrow
-void SBI(CPU* cpu, uint8_t opcode) {
-    
-} // Subtract immediate from A with borrow
+void SUB(CPU* cpu, uint8_t opcode) { // Subtract register from A
+    uint8_register* reg = get_register_ptr(cpu, opcode & 7);
+    uint8_t a = cpu->A.value;
+    uint8_t b = reg->value;
+    cpu->A.value -= reg->value;
+    if (DEBUG) printf("SUB %c\t\t// Subtract value %d from register %c to A\n", reg->name, reg->value, reg->name);
+    update_flags_sub(cpu, opcode, a, reg->value);
+} 
+void SUI(CPU* cpu, uint8_t opcode) { // Subtract immediate from A
+    uint8_t a = cpu->A.value;
+    uint8_t b = cpu->memory[cpu->program_counter + 1];
+    cpu->A.value -= b;
+    if (DEBUG) printf("SUI %u\t\t// Subtract immediate value %u to A\n", b, b);
+    update_flags_sub(cpu, opcode, a, b);
+} 
+void SBB(CPU* cpu, uint8_t opcode) { // Subtract register from A with borrow
+
+} 
+void SBI(CPU* cpu, uint8_t opcode) { // Subtract immediate from A with borrow
+
+} 
 void INR(CPU* cpu, uint8_t opcode) {} // Increment register
 void DCR(CPU* cpu, uint8_t opcode) {} // Decrement register
 void ANA(CPU* cpu, uint8_t opcode) {} // AND register with A

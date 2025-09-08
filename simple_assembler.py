@@ -10,27 +10,63 @@ class Command:
     def __str__(self): return f"{self.name}{', ' + self.op1 if self.op1 != None else ''}{', ' + self.op2 if self.op2 != None else ''}"
     def __repr__(self): return f"{self.name}{' ' + self.op1 if self.op1 != None else ''}{' ' + self.op2 if self.op2 != None else ''}"
     
-    def generate_opcode_list(self):
+    def generate_opcode(self):
         if (self.name == "MVI"): 
-            opcodes = f"{(0b00000110 | (self.get_register_hex(self.op1) << 3)):02x} {self.op2.lower()[2:]}"
+            base_opcode = 0b00000110
+            reg = self.get_register_hex(self.op1) << 3
+            i_val = self.conv_hex(self.op2.lower())
+            opcodes = f"{(base_opcode | reg):02x} {i_val[2:]}"
             return opcodes.split(" ")
         elif (self.name == "MOV"): 
-            opcodes = f"{(0b01000000 | (self.get_register_hex(self.op1) << 3) | self.get_register_hex(self.op2)):02x}"
+            base_opcode = 0b01000000
+            reg1 = self.get_register_hex(self.op1) << 3
+            reg2 = self.get_register_hex(self.op2)
+            opcodes = f"{(base_opcode | reg1 | reg2):02x}"
             return opcodes.split(" ")
         elif (self.name == "ADD"): 
-            opcodes = f"{(0b10000000 | self.get_register_hex(self.op1)):02x}"
+            base_opcode = 0b10000000
+            reg = self.get_register_hex(self.op1)
+            opcodes = f"{(base_opcode | reg):02x}"
             return opcodes.split(" ")
         elif (self.name == "ADI"): 
-            opcodes = f"{(0b11000110):02x} {self.op1.lower()[2:]}"
+            base_opcode = 0b11000110
+            i_val = self.conv_hex(self.op1.lower())
+            opcodes = f"{(base_opcode):02x} {i_val[2:]}"
             return opcodes.split(" ")
         elif (self.name == "ADC"): 
-            opcodes = f"{(0b10001000):02x} {self.get_register_hex(self.op1):02x}"
+            base_opcode = 0b10001000
+            reg = self.get_register_hex(self.op1)
+            opcodes = f"{(base_opcode | reg):02x}"
             return opcodes.split(" ")
         elif (self.name == "ACI"): 
-            opcodes = f"{(0b11001110):02x} {self.op1.lower()[2:]}"
+            base_opcode = 0b11001110
+            i_val = self.conv_hex(self.op1.lower())
+            opcodes = f"{(base_opcode):02x} {i_val[2:]}"
             return opcodes.split(" ")
         elif (self.name == "OUT"):
-            opcodes = f"{(0b11010011 ):02x} {self.op1.lower()}"
+            base_opcode = 0b11010011
+            port = self.conv_hex(self.op1.lower())
+            opcodes = f"{(base_opcode):02x} {port[2:]}"
+            return opcodes.split(" ")
+        elif (self.name == "SUB"): 
+            base_opcode = 0b10010000
+            reg = self.get_register_hex(self.op1)
+            opcodes = f"{(base_opcode | reg):02x}"
+            return opcodes.split(" ")
+        elif (self.name == "SUI"): 
+            base_opcode = 0b11010110
+            i_val = self.conv_hex(self.op1.lower())
+            opcodes = f"{(base_opcode):02x} {i_val[2:]}"
+            return opcodes.split(" ")
+        elif (self.name == "SBB"): 
+            base_opcode = 0b10011000
+            reg = self.get_register_hex(self.op1)
+            opcodes = f"{(base_opcode | reg):02x}"
+            return opcodes.split(" ")
+        elif (self.name == "SBI"): 
+            base_opcode = 0b11011110
+            i_val = self.conv_hex(self.op1.lower())
+            opcodes = f"{(base_opcode):02x} {i_val[2:]}"
             return opcodes.split(" ")
         
         exit(f"{self.name} is not implemented yet, exitting")
@@ -38,6 +74,13 @@ class Command:
     def get_register_hex(self, name):
         names = { "B": 0, "C": 1, "D": 2, "E": 3, "H": 4, "L": 5, "M": 6, "A": 7 }
         return names[name]
+    
+    # Converts a number into hex, allowing for a user to use either decimal and/or hex in their assembly
+    def conv_hex(self, num):
+        if ("0x" in num): return num
+        return hex(int(num))
+        
+            
 
 def read_file(filename: str, verbose = False):
     commands = []
@@ -60,10 +103,11 @@ def read_file(filename: str, verbose = False):
             
             if (len(split_code) >= 1): command = split_code[0]
             if (len(split_code) >= 2): op1 = split_code[1]
-            if (len(split_code) >= 3):  op2 = split_code[2]
+            if (len(split_code) >= 3): op2 = split_code[2]
             
             full_command = Command(command, op1, op2)
             commands.append(full_command)
+    
     if (verbose): print(f"{GREEN}Log:{RESET} Done reading {filename}")
     return commands
         
@@ -73,10 +117,11 @@ def write_file(filename: str, commands: list, verbose = False) -> int:
             if (verbose): print(f"{GREEN}Log:{RESET} Writing to file {filename}")
             hex_list = []
             for i in commands:
-                opcode_list = i.generate_opcode_list()
+                opcode_list = i.generate_opcode()
                 for opcode in opcode_list:
                     hex_list.append(int("0x" + opcode, 16))
-            hex_list.append(int("0x76", 16))
+            
+            hex_list.append(int("0x76", 16)) # Manually add HLT to end
         
             byte_list = bytearray(hex_list)
             file.write(byte_list)
@@ -85,10 +130,14 @@ def write_file(filename: str, commands: list, verbose = False) -> int:
         if (verbose): print(f"{YELLOW}Warning:{RESET} creating file {filename}")
         open(filename, "w") # Maybe need error checking here, that's why I'm opening the file...
         write_file(filename, commands, verbose)
-    except: 
+    except Exception as err:
+        print(f"Got exception {err}") 
         return 1
         
     return 0
     
 if __name__ == "__main__":
     print("Hello!")
+    comms = read_file("program.asm", True)
+    print(f"{comms = }")
+    write_file("program.bin", comms, True)
