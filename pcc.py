@@ -15,7 +15,7 @@ parser.add_argument("--version", action = "store_true", default = False, help = 
 
 # C related arguments
 parser.add_argument("-r", "--run", action = "store_true", default = False, help = "Run the assembled file")
-parser.add_argument("-c", "--compile_c", action = "store_true", default = False, help = "Recompile the C file with gcc cpu_intel-8080.c -o out.exe' by default' by default")
+parser.add_argument("-c", "--compile_c", action = "store_true", default = False, help = "Recompile the C file with 'gcc cpu_intel-8080.c -o out.exe' by default")
 parser.add_argument("--compile_args", default = "-o out.exe", help = "Change the compile options for the C code")
 
 args = parser.parse_args()
@@ -62,10 +62,13 @@ if __name__ == "__main__":
             open("./out.exe", "r") # Check if we can open the file
             if (args.verbose): print(f"{GREEN}Log:{RESET} Running file {out_filename}")
             result = subprocess.run(["./out.exe", out_filename])
+        
         except FileNotFoundError:
             print(f"{RED}Fatal error:{RESET} Could not find out.exe. Did you use -N by mistake?")
+        
         except OSError:
             print(f"{RED}Fatal error:{RESET} Could not run {out_filename}. Try running on {op_os_dict[os.name]} or compiling on {os_dict[os.name]}")
+        
         except Exception as err:
             print(f"{RED}Warning:{RESET} Got an unaccounted for error: {err}")
             traceback.print_exc()
