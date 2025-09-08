@@ -15,8 +15,8 @@ ADI 254   ; A = A + 254 = 2 + 254 = 0, AC = 1, CY = 1
 ACI 1     ; A = A + 1 + CY = 0 + 1 + 1 = 2
 SUI 3     ; A = A - 3 = 2 - 3 = 255, AC = 1, CY = 1
 ; Add the sub borrow variants here
-SBB A
-SBI 1
+SBB A     ; A = A - A - CY = 255 - 255 - 1 = 255
+SBI 1     ; A = A - 1 - CY = 255 - 1 - 1 = 253. I hope this is right...
 OUT 3
 OUT 1
 HLT
