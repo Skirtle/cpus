@@ -43,6 +43,8 @@ void initialize_opcode_lookup();
 void update_uint16_registers(CPU* cpu);
 void update_flags_add(CPU* cpu, uint8_t opcode, uint8_t reg_a_value, uint8_t added_value);
 void update_flags_sub(CPU* cpu, uint8_t opcode, uint8_t reg_a_value, uint8_t added_value);
+void update_16_reg(CPU* cpu); // TODO: Implement. Updates BC, DE, and HL based off of their components
+void update_8_reg(CPU* cpu); // TODO: Implement. Updates the components of BC, DE, and HL
 char* get_register_name(uint8_t reg);
 int initialize_cpu(CPU* cpu, char* filename);
 uint8_t fetch(CPU* cpu);
