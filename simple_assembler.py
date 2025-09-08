@@ -67,6 +67,8 @@ class Command:
             i_val = self.conv_hex(self.op1.lower())
             opcodes = f"{(base_opcode):02x} {i_val[2:]}"
             return opcodes.split(" ")
+        elif (self.name == "NOP"): return ["0"]
+        elif (self.name == "HLT"): return ["76"]
         
         exit(f"{self.name} is not implemented yet, exitting")
         
@@ -112,17 +114,16 @@ def read_file(filename: str, verbose = False):
         
 def write_file(filename: str, commands: list, verbose = False) -> int:
     try: 
-        file = open(filename, "br+")
+        file = open(filename, "bw+")
         if (verbose): print(f"{GREEN}Log:{RESET} Writing to file {filename}")
         hex_list = []
         for i in commands:
             opcode_list = i.generate_opcode()
             for opcode in opcode_list:
-                print(opcode)
-                hex_list.append(int("0x" + opcode, 16))
+                new_opcode = int(opcode, 16)
+                hex_list.append(new_opcode)
         
-        hex_list.append(int("0x76", 16)) # Manually add HLT to end
-    
+        if (hex_list[-1] != "0x76"): hex_list.append(int("0x76", 16)) # Manually add HLT to end
         byte_list = bytearray(hex_list)
         file.write(byte_list)
         if (verbose): print(f"{GREEN}Log:{RESET} Wrote {len(byte_list)} bytes to {filename}")
@@ -141,11 +142,10 @@ def write_file(filename: str, commands: list, verbose = False) -> int:
     except Exception as err:
         print(f"Got exception {err}, {type(err).__name__}, exitting with code 1") 
         return 1
-        
+    
     return 0
     
 if __name__ == "__main__":
-    print("Hello!")
+    print("You're in simple_assembler.py!")
     comms = read_file("program.asm", True)
-    print(f"{comms = }")
     write_file("program.bin", comms, True)

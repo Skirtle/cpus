@@ -178,7 +178,7 @@ int initialize_cpu(CPU* cpu, char* filename) {
     cpu->running = true;
     
     // Set flag register
-    initialize_uint8_register(&cpu->flag, 'F', 0);
+    initialize_uint8_register(&cpu->flag, 'F', 0b00000010);
 
     return 0;
 }
@@ -286,7 +286,7 @@ void update_flags_add(CPU* cpu, uint8_t opcode, uint8_t reg_a_value, uint8_t add
         temp >>= 1;
     }
 
-    // Set Pairty to 1 if even, otherwise 0
+    // Set Pairty to 1 if even number of bits, otherwise 0
     if (parity % 2 == 0)  curr_flags |= 0x04;
     else curr_flags &= ~0x04;
 
