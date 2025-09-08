@@ -59,8 +59,8 @@
 | ADI #       | 11000110 db       | ZSCPA   | Add immediate to A                    | Yes         |
 | ADC S       | 10001SSS          | ZSCPA   | Add register to A with carry          | Yes         |
 | ACI #       | 11001110 db       | ZSCPA   | Add immediate to A with carry         | Yes         |
-| SUB S       | 10010SSS          | ZSCPA   | Subtract register from A              | No          |
-| SUI #       | 11010110 db       | ZSCPA   | Subtract immediate from A             | No          |
+| SUB S       | 10010SSS          | ZSCPA   | Subtract register from A              | Yes         |
+| SUI #       | 11010110 db       | ZSCPA   | Subtract immediate from A             | Yes         |
 | SBB S       | 10011SSS          | ZSCPA   | Subtract register from A with borrow  | No          |
 | SBI #       | 11011110 db       | ZSCPA   | Subtract immediate from A with borrow | No          |
 | INR D       | 00DDD100          | ZSPA    | Increment register                    | No          |
@@ -97,7 +97,7 @@
 | XTHL        | 11100011          | -       | Swap H:L with top word on stack       | No          |
 | SPHL        | 11111001          | -       | Set SP to content of H:L              | No          |
 | IN p        | 11011011 pa       | -       | Read input port into A                | No          |
-| OUT p       | 11010011 pa       | -       | Write A to output port                | No          |
+| OUT p       | 11010011 pa       | -       | Write A to output port                | Sure        |
 | EI          | 11111011          | -       | Enable interrupts                     | No          |
 | DI          | 11110011          | -       | Disable interrupts                    | No          |
 | HLT         | 01110110          | -       | Halt processor                        | Yes         |
