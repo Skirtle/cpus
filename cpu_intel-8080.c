@@ -507,6 +507,9 @@ void OUT(CPU* cpu, uint8_t opcode) { // Write A to output port
     cpu->ports[port_number] = cpu->A.value;
     if (DEBUG) printf("OUT %d\t\t// Write 0x%02x to output port %u\n",port_number, cpu->A.value, port_number);
     if (port_number == 0) printf("OUTPUT: %u\n", cpu->A.value);
+    else if (port_number == 1) {
+        print_cpu_registers(cpu);
+    }
 } 
 
 

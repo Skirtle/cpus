@@ -7,3 +7,4 @@ SUB B     ; A = A - B = 25 - 10 = 15
 OUT 0     ; Print A = 15
 SUI 15    ; A = A - 15 = 15
 OUT 0     ; Print A = 0
+OUT 1     ; Print all registers
