@@ -207,12 +207,21 @@ void print_cpu_registers(CPU* cpu) {
 }
 
 void print_cpu_memory(CPU* cpu) {
+    int last_index = -1;
+    for (int i = MAX_PROGRAM_SIZE - 1; i >= 0; i--) {
+        if (cpu->memory[i] != 0) {
+            last_index = i + 1;
+            break;
+        }
+    }
+
+
     for (int i = 0; i < MAX_PROGRAM_SIZE; i++) {
         // Address block
         if (i % MEMORY_WIDTH == 0) printf("0x%0*x\t", MEMORY_WIDTH, i);
 
         // Actual data
-        if (cpu->memory[i + 1] != 0 || cpu->memory[i] != 0) printf("%s", GREEN);
+        if (i < last_index) printf("%s", GREEN);
         printf("%02x %s", cpu->memory[i], RESET);
         if (i % MEMORY_WIDTH == MEMORY_WIDTH - 1) printf("\n");
     }
@@ -489,10 +498,21 @@ void SUI(CPU* cpu, uint8_t opcode) { // Subtract immediate from A
     update_flags_sub(cpu, opcode, a, b);
 } 
 void SBB(CPU* cpu, uint8_t opcode) { // Subtract register from A with borrow
-    printf("%sTODO: Implement SBB\n%s", RED, RESET);
+    uint8_register* reg = get_register_ptr(cpu, opcode & 7);
+    uint8_t a = cpu->A.value;
+    uint8_t b = reg->value;
+    uint8_t c = cpu->flag.value & 1;
+    cpu->A.value = a - b - c;
+    if (DEBUG) printf("SBB %c\t\t// Subtract value %d and borrow %d from register %c from A\n", reg->name, reg->value, c, reg->name);
+    update_flags_sub(cpu, opcode, a, reg->value);
 } 
 void SBI(CPU* cpu, uint8_t opcode) { // Subtract immediate from A with borrow
-    printf("%sTODO: Implement SBI\n%s", RED, RESET);
+    uint8_t a = cpu->A.value;
+    uint8_t b = cpu->memory[cpu->program_counter + 1];
+    uint8_t c = cpu->flag.value & 1;
+    cpu->A.value -= b - c;
+    if (DEBUG) printf("SBB %u\t\t// Subtract immediate value %u and borrow %u from A\n", b, b, c);
+    update_flags_sub(cpu, opcode, a, b);
 } 
 void INR(CPU* cpu, uint8_t opcode) {} // Increment register
 void DCR(CPU* cpu, uint8_t opcode) {} // Decrement register
