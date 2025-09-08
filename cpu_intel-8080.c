@@ -209,7 +209,7 @@ void print_cpu_memory(CPU* cpu) {
         }
     }
 
-    int last_row = last_index / MEMORY_WIDTH;
+    int last_row = (last_index - 1) / MEMORY_WIDTH;
 
     for (int i = 0; i < MAX_PROGRAM_SIZE; i++) {
         // Address block
