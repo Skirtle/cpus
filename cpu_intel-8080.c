@@ -46,6 +46,7 @@ void print_cpu_memory(CPU* cpu);
 void print_binary(uint8_t byte);
 void initialize_opcode_lookup();
 void update_uint16_registers(CPU* cpu);
+void update_uint8_registers(CPU* cpu);
 void update_flags_add(CPU* cpu, uint8_t opcode, uint8_t reg_a_value, uint8_t added_value);
 void update_flags_sub(CPU* cpu, uint8_t opcode, uint8_t reg_a_value, uint8_t added_value);
 void update_16_reg(CPU* cpu); // TODO: Implement. Updates BC, DE, and HL based off of their components
@@ -116,14 +117,16 @@ int main(int argc, char* argv[]) {
     }
 
     // Fetch-decode-execute loop
+    bool error_stop = false;
     while (cpu.running) {
         if (cpu.program_counter >= MAX_PROGRAM_SIZE) cpu.program_counter = 0;
         uint8_t opcode = cpu.memory[cpu.program_counter];
         Instruction inst = opcode_lookup[opcode];
 
         if (inst.size == 0) {
-            printf("Invalid opcode (0x%02x) detected, exitting\n", opcode);
-            return 1;
+            printf("%sInvalid opcode (0x%02x) detected, exitting\n%s", RED, opcode, RESET);
+            error_stop = true;
+            break;
         }
 
         inst.execute(&cpu, opcode);
@@ -142,16 +145,15 @@ int main(int argc, char* argv[]) {
 }
 
 // Function defenitions
+// Initialize
 void initialize_uint8_register(uint8_register* reg, char c, uint8_t v) {
     reg->name = c;
     reg->value = v;
 }
-
 void initialize_uint16_register(uint16_register* reg, char* s, uint16_t v) {
     strcpy(reg->name, s);
     reg->value = v;
 }
-
 int initialize_cpu(CPU* cpu, char* filename) {
     // Main registers
     initialize_uint8_register(&cpu->A, 'A', 0);
@@ -191,13 +193,12 @@ int initialize_cpu(CPU* cpu, char* filename) {
     return 0;
 }
 
+// Printing
 void print_cpu_registers(CPU* cpu) {
     print_8bit_registers(cpu);
     print_16bit_registers(cpu);
     print_states_and_flags(cpu);
-}
-    
-
+}  
 void print_cpu_memory(CPU* cpu) {
     int last_index = -1;
 
@@ -226,7 +227,6 @@ void print_cpu_memory(CPU* cpu) {
         if (i % MEMORY_WIDTH == MEMORY_WIDTH - 1) printf("\n");
     }
 }
-
 void print_binary(uint8_t byte) {
     printf("0b");
     for (int i = 7; i >= 0; i--) {
@@ -234,7 +234,6 @@ void print_binary(uint8_t byte) {
         printf("%d", num);
     }
 }
-
 void print_8bit_registers(CPU* cpu) {
     printf("%s%c = %s%d, ", REGISTER_COLOR, cpu->A.name, IMMEDIATE_COLOR, cpu->A.value);
     printf("%s%c = %s%d, ", REGISTER_COLOR, cpu->B.name, IMMEDIATE_COLOR, cpu->B.value);
@@ -245,13 +244,11 @@ void print_8bit_registers(CPU* cpu) {
     printf("%s%c = %s%d, ", REGISTER_COLOR, cpu->L.name, IMMEDIATE_COLOR, cpu->L.value);
     printf("%s%c = %s%d\n%s", REGISTER_COLOR, cpu->M.name, IMMEDIATE_COLOR, cpu->M.value, RESET);
 }
-
 void print_16bit_registers(CPU* cpu) {
     printf("%s%s = %s0x%04x, ", REGISTER_COLOR, cpu->BC.name, IMMEDIATE_COLOR, cpu->BC.value);
     printf("%s%s = %s0x%04x, ", REGISTER_COLOR, cpu->DE.name, IMMEDIATE_COLOR, cpu->DE.value);
     printf("%s%s = %s0x%04x\n%s", REGISTER_COLOR, cpu->HL.name, IMMEDIATE_COLOR, cpu->HL.value, RESET);
 }
-
 void print_states_and_flags(CPU* cpu) {
     printf("%sSP = %d, PC = %d, ", MAGENTA, cpu->stack_pointer, cpu->program_counter);
     // TODO: Split the Flag print into its multiple flags
@@ -260,10 +257,10 @@ void print_states_and_flags(CPU* cpu) {
     printf(" (0x%02x), Running = %d%s",cpu->flag.value, cpu->running, RESET); 
 }
 
+// Getting
 uint8_t fetch(CPU* cpu) {
     return cpu->memory[cpu->program_counter];
 }
-
 uint8_register* get_register_ptr(CPU* cpu, uint8_t reg) {
     switch (reg) {
         case 0:
@@ -284,12 +281,12 @@ uint8_register* get_register_ptr(CPU* cpu, uint8_t reg) {
             return &cpu->A;
     }
 }
-
 char* get_register_name(uint8_t reg) {
     char* names[] = {"B", "C", "D", "E", "H", "L", "M", "A"};
     return names[reg & 7];
 }
 
+// Updating
 void update_uint16_registers(CPU* cpu) {
     uint16_register reg16_bc = uint8_to_uint16_register(&cpu->B, &cpu->C);
     uint16_register reg16_de = uint8_to_uint16_register(&cpu->D, &cpu->E);
@@ -299,7 +296,16 @@ void update_uint16_registers(CPU* cpu) {
     cpu->DE.value = reg16_de.value;
     cpu->HL.value = reg16_hl.value;
 }
+void update_uint8_registers(CPU* cpu) {
+    cpu->B.value = (uint8_t) (cpu->BC.value >> 8);
+    cpu->C.value = (uint8_t) (cpu->BC.value & 0x0F);
 
+    cpu->D.value = (uint8_t) (cpu->DE.value >> 8);
+    cpu->E.value = (uint8_t) (cpu->DE.value & 0x0F);
+
+    cpu->H.value = (uint8_t) (cpu->HL.value >> 8);
+    cpu->L.value = (uint8_t) (cpu->HL.value & 0x0F);
+}
 void update_flags_add(CPU* cpu, uint8_t opcode, uint8_t reg_a_value, uint8_t added_value) {
     uint8_t curr_flags = cpu->flag.value;
     uint8_t a = reg_a_value;
@@ -338,7 +344,6 @@ void update_flags_add(CPU* cpu, uint8_t opcode, uint8_t reg_a_value, uint8_t add
 
     cpu->flag.value = curr_flags;
 }
-
 void update_flags_sub(CPU* cpu, uint8_t opcode, uint8_t reg_a_value, uint8_t added_value) {
     uint8_t curr_flags = cpu->flag.value;
     uint8_t a = reg_a_value;
