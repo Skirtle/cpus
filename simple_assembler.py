@@ -79,6 +79,37 @@ class Command:
             reg = self.get_register_hex(self.op1) << 3
             opcodes = f"{(base_opcode | reg):02x}"
             return opcodes.split(" ")
+        elif (self.name == "ANA"): 
+            base_opcode = 0b10100000
+            reg = self.get_register_hex(self.op1)
+            opcodes = f"{(base_opcode | reg):02x}"
+            return opcodes.split(" ")
+        elif (self.name == "ANI"): 
+            base_opcode = 0b11100110
+            i_val = self.conv_hex(self.op1.lower())
+            opcodes = f"{(base_opcode):02} {i_val[2:]}"
+            return opcodes.split(" ")
+        elif (self.name == "ORA"): 
+            base_opcode = 0b10110000
+            reg = self.get_register_hex(self.op1)
+            opcodes = f"{(base_opcode | reg):02x}"
+            return opcodes.split(" ")
+        elif (self.name == "ORI"): 
+            base_opcode = 0b11110110
+            i_val = self.conv_hex(self.op1.lower())
+            opcodes = f"{(base_opcode):02} {i_val[2:]}"
+            return opcodes.split(" ")
+        elif (self.name == "XRA"): 
+            base_opcode = 0b10101000
+            reg = self.get_register_hex(self.op1)
+            opcodes = f"{(base_opcode | reg):02x}"
+            return opcodes.split(" ")
+        elif (self.name == "XRI"): 
+            base_opcode = 0b11101110
+            i_val = self.conv_hex(self.op1.lower())
+            opcodes = f"{(base_opcode):02} {i_val[2:]}"
+            return opcodes.split(" ")
+        
         
         exit(f"{self.name} is not implemented yet, exitting")
         

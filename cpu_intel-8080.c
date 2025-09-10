@@ -465,7 +465,7 @@ void HLT(CPU* cpu, uint8_t opcode) {
     if (DEBUG) printf("%s%sHLT%s%s\t\t// Stop the CPU\n%s", DIM, RED, RESET, DIM, RESET);
 }
 
-// Data management
+// Data management (8-bit only)
 void MOV(CPU* cpu, uint8_t opcode) {
     uint8_register* dest_ptr = get_register_ptr(cpu, (opcode >> 3) & 7);
     uint8_register* src_ptr = get_register_ptr(cpu, opcode & 7);
