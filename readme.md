@@ -63,8 +63,8 @@
 | SUI #       | 11010110 db       | ZSCPA   | Subtract immediate from A             | Yes         |
 | SBB S       | 10011SSS          | ZSCPA   | Subtract register from A with borrow  | No          |
 | SBI #       | 11011110 db       | ZSCPA   | Subtract immediate from A with borrow | No          |
-| INR D       | 00DDD100          | ZSPA    | Increment register                    | No          |
-| DCR D       | 00DDD101          | ZSPA    | Decrement register                    | No          |
+| INR D       | 00DDD100          | ZSPA    | Increment register                    | Yes         |
+| DCR D       | 00DDD101          | ZSPA    | Decrement register                    | Yes         |
 | INX RP      | 00RP0011          | -       | Increment register pair               | No          |
 | DCX RP      | 00RP1011          | -       | Decrement register pair               | No          |
 | DAD RP      | 00RP1001          | C       | Add register pair to HL (16 bit add)  | No          |
