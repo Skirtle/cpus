@@ -119,8 +119,11 @@ class Command:
     
     # Converts a number into hex, allowing for a user to use either decimal and/or hex in their assembly
     def conv_hex(self, num):
-        if ("0x" in num): return num
-        return hex(int(num))
+        base = 10
+        if ("0x" in num): base = 16
+        elif ("0b" in num): base = 2
+        elif ("0o" in num): base = 8 # For the sick freaks who use octal in asm
+        return hex(int(num, base))
         
             
 
