@@ -460,12 +460,20 @@ void initialize_opcode_lookup() {
     opcode_lookup[0xD3] = (Instruction) {"OUT", OUT, 2};
     opcode_lookup[0xD6] = (Instruction) {"SUI", SUI, 2};
     opcode_lookup[0xDE] = (Instruction) {"SBI", SBI, 2};
+    opcode_lookup[0xE6] = (Instruction) {"ANI", ANI, 2};
+    opcode_lookup[0xF6] = (Instruction) {"ORI", ORI, 2};
+    opcode_lookup[0xEE] = (Instruction) {"XRI", XRI, 2};
 
     int count = 0;
     for (int i = 0; i < 256; i++) { 
-        if (opcode_lookup[i].size != 0) count += 1;
+        if (opcode_lookup[i].size != 0) {
+            count += 1;
+            // printf("\nOpcode %d: %s", i, opcode_lookup[i].name);
+        }
     }
     if (DEBUG) printf("\n%d/256 (%0.2f%%) opcodes implemented", count, count / 2.56);
+
+    // TODO: All size 0 instructions become NOP after we do all the counting, will need to also fix the error checking in main
 
 }
 
@@ -589,15 +597,21 @@ void DCR(CPU* cpu, uint8_t opcode) { // Decrement register
 void ANA(CPU* cpu, uint8_t opcode) {
     printf("%sTODO: Add ANA\n%s", RED, RESET);
 } // AND register with A
-void ANI(CPU* cpu, uint8_t opcode) {} // AND immediate with A
+void ANI(CPU* cpu, uint8_t opcode) {
+    printf("%sTODO: Add ANI\n%s", RED, RESET);
+} // AND immediate with A
 void ORA(CPU* cpu, uint8_t opcode) {
     printf("%sTODO: Add ORA\n%s", RED, RESET);
 } // OR register with A
-void ORI(CPU* cpu, uint8_t opcode) {} // OR immediate with A
+void ORI(CPU* cpu, uint8_t opcode) {
+    printf("%sTODO: Add ORI\n%s", RED, RESET);
+} // OR immediate with A
 void XRA(CPU* cpu, uint8_t opcode) {
     printf("%sTODO: Add XRA\n%s", RED, RESET);
-} // ExclusiveOR register with A
-void XRI(CPU* cpu, uint8_t opcode) {} // ExclusiveOR immediate with A
+} // Exclusive OR register with A
+void XRI(CPU* cpu, uint8_t opcode) {
+    printf("%sTODO: Add XRI\n%s", RED, RESET);
+} // Exclusive OR immediate with A
 void CMP(CPU* cpu, uint8_t opcode) {} // Compare register with A
 void CPI(CPU* cpu, uint8_t opcode) {} // Compare immediate with A
 

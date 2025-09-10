@@ -44,6 +44,8 @@ if (args.output_filename == None): out_filename = in_filename.split(".")[0] + ".
 else: out_filename = args.output_filename
 
 if __name__ == "__main__":
+    write_code = 0
+    
     if (args.no_output):
         commands = sa.read_file(in_filename, args.verbose)
         write_code = sa.write_file(out_filename, commands, args.verbose)
@@ -57,7 +59,7 @@ if __name__ == "__main__":
         result = subprocess.run(["gcc", "cpu_intel-8080.c"] + args.compile_args.split(" "))
         if (args.verbose): print(f"{GREEN}Log:{RESET} Got exit code {result.returncode} from recompiling C code")
     
-    if (args.run):
+    if (args.run and write_code == 0):
         try:
             open("./out.exe", "r") # Check if we can open the file
             if (args.verbose): print(f"{GREEN}Log:{RESET} Running file {out_filename}")
