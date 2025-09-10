@@ -547,7 +547,7 @@ void INR(CPU* cpu, uint8_t opcode) {
     printf("%sTODO: Implement INR\n%s", RED, RESET);
 } // Increment register
 void DCR(CPU* cpu, uint8_t opcode) {
-    printf("%sTODO: Implement DNR\n%s", RED, RESET);
+    printf("%sTODO: Implement DCR\n%s", RED, RESET);
 } // Decrement register
 void ANA(CPU* cpu, uint8_t opcode) {} // AND register with A
 void ANI(CPU* cpu, uint8_t opcode) {} // AND immediate with A

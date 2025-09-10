@@ -69,6 +69,16 @@ class Command:
             return opcodes.split(" ")
         elif (self.name == "NOP"): return ["0"]
         elif (self.name == "HLT"): return ["76"]
+        elif (self.name == "INR"): 
+            base_opcode = 0b00000100
+            reg = self.get_register_hex(self.op1) << 3
+            opcodes = f"{(base_opcode | reg):02x}"
+            return opcodes.split(" ")
+        elif (self.name == "DCR"): 
+            base_opcode = 0b00000101
+            reg = self.get_register_hex(self.op1) << 3
+            opcodes = f"{(base_opcode | reg):02x}"
+            return opcodes.split(" ")
         
         exit(f"{self.name} is not implemented yet, exitting")
         
