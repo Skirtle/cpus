@@ -594,12 +594,26 @@ void DCR(CPU* cpu, uint8_t opcode) { // Decrement register
     if (reg->value + 1 == 0x10) {cpu->flag.value |= 0x10; } // borrow = true
     else {cpu->flag.value &= ~0x10; } // borrow = false
 }
-void ANA(CPU* cpu, uint8_t opcode) {
-    printf("%sTODO: Add ANA\n%s", RED, RESET);
-} // AND register with A
-void ANI(CPU* cpu, uint8_t opcode) {
-    printf("%sTODO: Add ANI\n%s", RED, RESET);
-} // AND immediate with A
+void ANA(CPU* cpu, uint8_t opcode) { // AND register with A
+    uint8_register* reg = get_register_ptr(cpu, opcode & 7);
+    cpu->A.value = cpu->A.value & reg->value;
+    update_flag_S(cpu);
+    update_flag_Z(cpu);
+    update_flag_P(cpu);
+    cpu->flag.value &= ~0x01; // CY = 0, always
+    cpu->flag.value |= 0x10; // AC = 1 for ANA/ANI only
+    if (DEBUG) printf("%sANA %s%c\t\t%s%s// Logical AND register %c with register A\n%s", OPCODE_COLOR, REGISTER_COLOR, reg->name, RESET, COMMENT_COLOR, reg->name, RESET);
+}
+void ANI(CPU* cpu, uint8_t opcode) { // AND immediate with A
+    uint8_t val = cpu->memory[cpu->program_counter + 1];
+    cpu->A.value = cpu->A.value & val;
+    update_flag_S(cpu);
+    update_flag_Z(cpu);
+    update_flag_P(cpu);
+    cpu->flag.value &= ~0x01; // CY = 0, always
+    cpu->flag.value |= 0x10; // AC = 1 for ANA/ANI only
+    if (DEBUG) printf("%sANA %s%u\t\t%s%s// Logical AND immediate %u with register A\n%s", OPCODE_COLOR, REGISTER_COLOR, val, RESET, COMMENT_COLOR, val, RESET);
+}
 void ORA(CPU* cpu, uint8_t opcode) {
     printf("%sTODO: Add ORA\n%s", RED, RESET);
 } // OR register with A

@@ -109,4 +109,5 @@
 #### Sources
 * [Encodings](http://dunfield.classiccmp.org//r/8080.txt)
 * [General information](https://en.wikipedia.org/wiki/Intel_8080#Flags)
+* [Manual](https://ia601901.us.archive.org/28/items/bitsavers_intelISISIssemblyLanguageProgrammingManualMay81_7150831/9800301-04_8080_8085_Assembly_Language_Programming_Manual_May81.pdf)
 
