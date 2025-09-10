@@ -432,8 +432,8 @@ void initialize_opcode_lookup() {
 
     // Create all INR and DCR opcodes
     for (int i = 0; i <= 7; i++) {
-        uint8_t inr_opcode = 0b00000100 + (i << 3);
-        uint8_t dcr_opcode = 0b00000101 + (i << 3);
+        uint8_t inr_opcode = 4 + (i << 3);
+        uint8_t dcr_opcode = 5 + (i << 3);
         opcode_lookup[inr_opcode] = (Instruction) {"", INR, 1};
         opcode_lookup[dcr_opcode] = (Instruction) {"", DCR, 1};
         snprintf(opcode_lookup[inr_opcode].name, sizeof(opcode_lookup[inr_opcode].name), "INR %s", get_register_name(i));
@@ -442,15 +442,22 @@ void initialize_opcode_lookup() {
 
     // Create all ANA, ORA, XRA opcodes
     for (int i = 0; i <= 7; i++) {
-        uint8_t ana_opcode = 0b10100000 + i;
-        uint8_t ora_opcode = 0b10110000 + i;
-        uint8_t xra_opcode = 0b10101000 + i;
+        uint8_t ana_opcode = 160 + i;
+        uint8_t ora_opcode = 176 + i;
+        uint8_t xra_opcode = 1668 + i;
         opcode_lookup[ana_opcode] = (Instruction) {"", ANA, 1};
         opcode_lookup[ora_opcode] = (Instruction) {"", ORA, 1};
         opcode_lookup[xra_opcode] = (Instruction) {"", XRA, 1};
         snprintf(opcode_lookup[ana_opcode].name, sizeof(opcode_lookup[ana_opcode].name), "ANA %s", get_register_name(i));
         snprintf(opcode_lookup[ora_opcode].name, sizeof(opcode_lookup[ora_opcode].name), "ORA %s", get_register_name(i));
         snprintf(opcode_lookup[xra_opcode].name, sizeof(opcode_lookup[xra_opcode].name), "XRA %s", get_register_name(i));
+    }
+
+    // Create all CMP opcodes
+    for (int i = 0; i <= 7; i++) {
+        uint8_t opcode = 184 + i;
+        opcode_lookup[opcode] = (Instruction) {"", CMP, 1};
+        snprintf(opcode_lookup[opcode].name, sizeof(opcode_lookup[opcode].name), "CMP %s", get_register_name(i));
     }
 
     opcode_lookup[0x00] = (Instruction) {"NOP", NOP, 1};
@@ -463,6 +470,7 @@ void initialize_opcode_lookup() {
     opcode_lookup[0xE6] = (Instruction) {"ANI", ANI, 2};
     opcode_lookup[0xF6] = (Instruction) {"ORI", ORI, 2};
     opcode_lookup[0xEE] = (Instruction) {"XRI", XRI, 2};
+    opcode_lookup[0xFE] = (Instruction) {"CPI", CPI, 2};
 
     int count = 0;
     for (int i = 0; i < 256; i++) { 
@@ -650,8 +658,12 @@ void XRI(CPU* cpu, uint8_t opcode) { // Exclusive OR immediate with A
     cpu->flag.value &= ~0x11; // CY = AC = 0
     if (DEBUG) printf("%sXRI %s%u\t\t%s%s// Logical OR immediate %u with register A\n%s", OPCODE_COLOR, REGISTER_COLOR, val, RESET, COMMENT_COLOR, val, RESET);
 }
-void CMP(CPU* cpu, uint8_t opcode) {} // Compare register with A
-void CPI(CPU* cpu, uint8_t opcode) {} // Compare immediate with A
+void CMP(CPU* cpu, uint8_t opcode) {
+    if (DEBUG) printf("%sTODO: Add CMP\n%s", RED, RESET);
+} // Compare register with A
+void CPI(CPU* cpu, uint8_t opcode) {
+    if (DEBUG) printf("%sTODO: Add CPI\n%s", RED, RESET);
+} // Compare immediate with A
 
 // Input and output
 void OUT(CPU* cpu, uint8_t opcode) { // Write A to output port

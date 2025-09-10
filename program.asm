@@ -1,5 +1,5 @@
-MVI B, 1
 CMP A
 CPI 0
 INR A
+CMP A
 CPI 0
