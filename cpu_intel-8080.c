@@ -440,6 +440,19 @@ void initialize_opcode_lookup() {
         snprintf(opcode_lookup[dcr_opcode].name, sizeof(opcode_lookup[dcr_opcode].name), "DCR %s", get_register_name(i));
     }
 
+    // Create all ANA, ORA, XRA opcodes
+    for (int i = 0; i <= 7; i++) {
+        uint8_t ana_opcode = 0b10100000 + i;
+        uint8_t ora_opcode = 0b10110000 + i;
+        uint8_t xra_opcode = 0b10101000 + i;
+        opcode_lookup[ana_opcode] = (Instruction) {"", ANA, 1};
+        opcode_lookup[ora_opcode] = (Instruction) {"", ORA, 1};
+        opcode_lookup[xra_opcode] = (Instruction) {"", XRA, 1};
+        snprintf(opcode_lookup[ana_opcode].name, sizeof(opcode_lookup[ana_opcode].name), "ANA %s", get_register_name(i));
+        snprintf(opcode_lookup[ora_opcode].name, sizeof(opcode_lookup[ora_opcode].name), "ORA %s", get_register_name(i));
+        snprintf(opcode_lookup[xra_opcode].name, sizeof(opcode_lookup[xra_opcode].name), "XRA %s", get_register_name(i));
+    }
+
     opcode_lookup[0x00] = (Instruction) {"NOP", NOP, 1};
     opcode_lookup[0x76] = (Instruction) {"HLT", HLT, 1};
     opcode_lookup[0xC6] = (Instruction) {"ADI", ADI, 2};
@@ -553,7 +566,7 @@ void SBI(CPU* cpu, uint8_t opcode) { // Subtract immediate from A with borrow
     if (DEBUG) printf("%sSBB %s%u\t\t%s%s// Subtract immediate value %u and borrow %u from A\n%s", OPCODE_COLOR, IMMEDIATE_COLOR, b, RESET, COMMENT_COLOR, b, c, RESET);
     update_flags_sub(cpu, opcode, a, b);
 } 
-void INR(CPU* cpu, uint8_t opcode) {
+void INR(CPU* cpu, uint8_t opcode) { // Increment register
     uint8_register* reg = get_register_ptr(cpu, (opcode >> 3) & 7);
     reg->value++;
     if (DEBUG) printf("%sINR %s%c\t%s\t%s// Increment register %c\n%s", OPCODE_COLOR, REGISTER_COLOR, reg->name, RESET, DIM, reg->name, RESET);
@@ -562,8 +575,8 @@ void INR(CPU* cpu, uint8_t opcode) {
     update_flag_P(cpu);
     if (reg->value - 1 == 0x0F) { cpu->flag.value |= 0x10; } // carry = true
     else { cpu->flag.value &= ~ 0x10; } // carry = false
-} // Increment register
-void DCR(CPU* cpu, uint8_t opcode) {
+}
+void DCR(CPU* cpu, uint8_t opcode) { // Decrement register
     uint8_register* reg = get_register_ptr(cpu, (opcode >> 3) & 7);
     reg->value--;
     if (DEBUG) printf("%sDCR %s%c\t%s\t%s// Decrement register %c\n%s", OPCODE_COLOR, REGISTER_COLOR, reg->name, RESET, DIM, reg->name, RESET);
@@ -572,12 +585,18 @@ void DCR(CPU* cpu, uint8_t opcode) {
     update_flag_P(cpu);
     if (reg->value + 1 == 0x10) {cpu->flag.value |= 0x10; } // borrow = true
     else {cpu->flag.value &= ~0x10; } // borrow = false
-} // Decrement register
-void ANA(CPU* cpu, uint8_t opcode) {} // AND register with A
+}
+void ANA(CPU* cpu, uint8_t opcode) {
+    printf("%sTODO: Add ANA\n%s", RED, RESET);
+} // AND register with A
 void ANI(CPU* cpu, uint8_t opcode) {} // AND immediate with A
-void ORA(CPU* cpu, uint8_t opcode) {} // OR register with A
+void ORA(CPU* cpu, uint8_t opcode) {
+    printf("%sTODO: Add ORA\n%s", RED, RESET);
+} // OR register with A
 void ORI(CPU* cpu, uint8_t opcode) {} // OR immediate with A
-void XRA(CPU* cpu, uint8_t opcode) {} // ExclusiveOR register with A
+void XRA(CPU* cpu, uint8_t opcode) {
+    printf("%sTODO: Add XRA\n%s", RED, RESET);
+} // ExclusiveOR register with A
 void XRI(CPU* cpu, uint8_t opcode) {} // ExclusiveOR immediate with A
 void CMP(CPU* cpu, uint8_t opcode) {} // Compare register with A
 void CPI(CPU* cpu, uint8_t opcode) {} // Compare immediate with A
