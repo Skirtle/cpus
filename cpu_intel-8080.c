@@ -612,20 +612,44 @@ void ANI(CPU* cpu, uint8_t opcode) { // AND immediate with A
     update_flag_P(cpu);
     cpu->flag.value &= ~0x01; // CY = 0, always
     cpu->flag.value |= 0x10; // AC = 1 for ANA/ANI only
-    if (DEBUG) printf("%sANA %s%u\t\t%s%s// Logical AND immediate %u with register A\n%s", OPCODE_COLOR, REGISTER_COLOR, val, RESET, COMMENT_COLOR, val, RESET);
+    if (DEBUG) printf("%sANI %s%u\t\t%s%s// Logical AND immediate %u with register A\n%s", OPCODE_COLOR, REGISTER_COLOR, val, RESET, COMMENT_COLOR, val, RESET);
 }
-void ORA(CPU* cpu, uint8_t opcode) {
-    printf("%sTODO: Add ORA\n%s", RED, RESET);
-} // OR register with A
-void ORI(CPU* cpu, uint8_t opcode) {
-    printf("%sTODO: Add ORI\n%s", RED, RESET);
-} // OR immediate with A
-void XRA(CPU* cpu, uint8_t opcode) {
-    printf("%sTODO: Add XRA\n%s", RED, RESET);
-} // Exclusive OR register with A
-void XRI(CPU* cpu, uint8_t opcode) {
-    printf("%sTODO: Add XRI\n%s", RED, RESET);
-} // Exclusive OR immediate with A
+void ORA(CPU* cpu, uint8_t opcode) { // OR register with A
+    uint8_register* reg = get_register_ptr(cpu, opcode & 7);
+    cpu->A.value = cpu->A.value | reg->value;
+    update_flag_S(cpu);
+    update_flag_Z(cpu);
+    update_flag_P(cpu);
+    cpu->flag.value &= ~0x11; // CY = AC = 0
+    if (DEBUG) printf("%sORA %s%c\t\t%s%s// Logical OR register %c with register A\n%s", OPCODE_COLOR, REGISTER_COLOR, reg->name, RESET, COMMENT_COLOR, reg->name, RESET);
+}
+void ORI(CPU* cpu, uint8_t opcode) { // OR immediate with A
+    uint8_t val = cpu->memory[cpu->program_counter + 1];
+    cpu->A.value = cpu->A.value | val;
+    update_flag_S(cpu);
+    update_flag_Z(cpu);
+    update_flag_P(cpu);
+    cpu->flag.value &= ~0x11; // CY = AC = 0
+    if (DEBUG) printf("%sORI %s%u\t\t%s%s// Logical OR immediate %u with register A\n%s", OPCODE_COLOR, REGISTER_COLOR, val, RESET, COMMENT_COLOR, val, RESET);
+}
+void XRA(CPU* cpu, uint8_t opcode) { // Exclusive OR register with A
+    uint8_register* reg = get_register_ptr(cpu, opcode & 7);
+    cpu->A.value = cpu->A.value ^ reg->value;
+    update_flag_S(cpu);
+    update_flag_Z(cpu);
+    update_flag_P(cpu);
+    cpu->flag.value &= ~0x11; // CY = AC = 0
+    if (DEBUG) printf("%sXRA %s%c\t\t%s%s// Logical OR register %c with register A\n%s", OPCODE_COLOR, REGISTER_COLOR, reg->name, RESET, COMMENT_COLOR, reg->name, RESET);
+}
+void XRI(CPU* cpu, uint8_t opcode) { // Exclusive OR immediate with A
+    uint8_t val = cpu->memory[cpu->program_counter + 1];
+    cpu->A.value = cpu->A.value ^ val;
+    update_flag_S(cpu);
+    update_flag_Z(cpu);
+    update_flag_P(cpu);
+    cpu->flag.value &= ~0x11; // CY = AC = 0
+    if (DEBUG) printf("%sXRI %s%u\t\t%s%s// Logical OR immediate %u with register A\n%s", OPCODE_COLOR, REGISTER_COLOR, val, RESET, COMMENT_COLOR, val, RESET);
+}
 void CMP(CPU* cpu, uint8_t opcode) {} // Compare register with A
 void CPI(CPU* cpu, uint8_t opcode) {} // Compare immediate with A
 
