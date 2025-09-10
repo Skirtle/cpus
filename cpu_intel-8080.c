@@ -272,9 +272,9 @@ uint8_register* get_register_ptr(CPU* cpu, uint8_t reg) {
         case 3:
             return &cpu->E;
         case 4:
-            return &cpu->E;
-        case 5:
             return &cpu->H;
+        case 5:
+            return &cpu->L;
         case 6:
             return &cpu->M;
         case 7:
