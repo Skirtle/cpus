@@ -560,7 +560,8 @@ void INR(CPU* cpu, uint8_t opcode) {
     update_flag_S(cpu);
     update_flag_Z(cpu);
     update_flag_P(cpu);
-    printf("%sTODO: Add flag A updating to INR\n%s", RED, RESET);
+    if (reg->value - 1 == 0x0F) { cpu->flag.value |= 0x10; } // carry = true
+    else { cpu->flag.value &= ~ 0x10; } // carry = false
 } // Increment register
 void DCR(CPU* cpu, uint8_t opcode) {
     uint8_register* reg = get_register_ptr(cpu, (opcode >> 3) & 7);
@@ -569,7 +570,8 @@ void DCR(CPU* cpu, uint8_t opcode) {
     update_flag_S(cpu);
     update_flag_Z(cpu);
     update_flag_P(cpu);
-    printf("%sTODO: Add flag A updating to DCR\n%s", RED, RESET);
+    if (reg->value + 1 == 0x10) {cpu->flag.value |= 0x10; } // borrow = true
+    else {cpu->flag.value &= ~0x10; } // borrow = false
 } // Decrement register
 void ANA(CPU* cpu, uint8_t opcode) {} // AND register with A
 void ANI(CPU* cpu, uint8_t opcode) {} // AND immediate with A
