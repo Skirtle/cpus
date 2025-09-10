@@ -556,7 +556,7 @@ void SBI(CPU* cpu, uint8_t opcode) { // Subtract immediate from A with borrow
 void INR(CPU* cpu, uint8_t opcode) {
     uint8_register* reg = get_register_ptr(cpu, (opcode >> 3) & 7);
     reg->value++;
-    if (DEBUG) printf("%sINR %s%c\t%s\t%s// Increment register %c by 1\n%s", OPCODE_COLOR, REGISTER_COLOR, reg->name, RESET, DIM, reg->name, RESET);
+    if (DEBUG) printf("%sINR %s%c\t%s\t%s// Increment register %c\n%s", OPCODE_COLOR, REGISTER_COLOR, reg->name, RESET, DIM, reg->name, RESET);
     update_flag_S(cpu);
     update_flag_Z(cpu);
     update_flag_P(cpu);
@@ -565,7 +565,7 @@ void INR(CPU* cpu, uint8_t opcode) {
 void DCR(CPU* cpu, uint8_t opcode) {
     uint8_register* reg = get_register_ptr(cpu, (opcode >> 3) & 7);
     reg->value--;
-    if (DEBUG) printf("%sDCR %s%c\t%s\t%s// Decrement register %c by 1\n%s", OPCODE_COLOR, REGISTER_COLOR, reg->name, RESET, DIM, reg->name, RESET);
+    if (DEBUG) printf("%sDCR %s%c\t%s\t%s// Decrement register %c\n%s", OPCODE_COLOR, REGISTER_COLOR, reg->name, RESET, DIM, reg->name, RESET);
     update_flag_S(cpu);
     update_flag_Z(cpu);
     update_flag_P(cpu);
