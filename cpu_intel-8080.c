@@ -51,6 +51,11 @@ void update_flags_add(CPU* cpu, uint8_t opcode, uint8_t reg_a_value, uint8_t add
 void update_flags_sub(CPU* cpu, uint8_t opcode, uint8_t reg_a_value, uint8_t added_value);
 void update_16_reg(CPU* cpu); // TODO: Implement. Updates BC, DE, and HL based off of their components
 void update_8_reg(CPU* cpu); // TODO: Implement. Updates the components of BC, DE, and HL
+void update_flag_S(CPU* cpu); // Sign
+void update_flag_Z(CPU* cpu); // Zero
+void update_flag_A(CPU* cpu, uint8_t a, uint8_t b, uint8_t c); // Nibble carry/borrow
+void update_flag_P(CPU* cpu); // Parity
+void update_flag_C(CPU* cpu, uint8_t a, uint8_t b, uint8_t c); // Byte carry/borrow
 void print_8bit_registers(CPU* cpu);
 void print_16bit_registers(CPU* cpu);
 void print_states_and_flags(CPU* cpu);
@@ -286,7 +291,7 @@ char* get_register_name(uint8_t reg) {
     return names[reg & 7];
 }
 
-// Updating
+// Updating registers
 void update_uint16_registers(CPU* cpu) {
     uint16_register reg16_bc = uint8_to_uint16_register(&cpu->B, &cpu->C);
     uint16_register reg16_de = uint8_to_uint16_register(&cpu->D, &cpu->E);
@@ -306,23 +311,22 @@ void update_uint8_registers(CPU* cpu) {
     cpu->H.value = (uint8_t) (cpu->HL.value >> 8);
     cpu->L.value = (uint8_t) (cpu->HL.value & 0x0F);
 }
-void update_flags_add(CPU* cpu, uint8_t opcode, uint8_t reg_a_value, uint8_t added_value) {
-    uint8_t curr_flags = cpu->flag.value;
-    uint8_t a = reg_a_value;
-    uint8_t b = added_value;
-    uint8_t c = 0;
-    if ((0x88 <= opcode && opcode <= 0x8F) || opcode == 0xCE) c = 1; // If the opcode is for ADC (0x88-0x8F) or ACI (0xCE) 
-    c *= cpu->flag.value & 1;
 
-    // S.Z.P.A.C.
+// Updating flags SZ0A0P1C
+void update_flag_S(CPU* cpu) { // Sign
+    uint8_t curr_flags = cpu->flag.value;
     // Set Sign to 1 if negative, otherwise 0
     if ((cpu->A.value & 0x80) == 0x80)  curr_flags |= 0x80;
     else curr_flags &= ~0x80;
-
+}
+void update_flag_Z(CPU* cpu) { // Zero
+    uint8_t curr_flags = cpu->flag.value;
     // Set Zero to 1 if equal to 0, otherwise 0
     if (cpu->A.value == 0) curr_flags |= 0x40;
     else curr_flags &= ~0x40;
-
+}
+void update_flag_P(CPU* cpu) { // Parity
+    uint8_t curr_flags = cpu->flag.value;
     int parity = 0;
     int temp = cpu->A.value;
     for (int i = 0; i <= 7; i++) {
@@ -333,6 +337,19 @@ void update_flags_add(CPU* cpu, uint8_t opcode, uint8_t reg_a_value, uint8_t add
     // Set Pairty to 1 if even number of bits, otherwise 0
     if (parity % 2 == 0)  curr_flags |= 0x04;
     else curr_flags &= ~0x04;
+}
+void update_flags_add(CPU* cpu, uint8_t opcode, uint8_t reg_a_value, uint8_t added_value) {
+    uint8_t curr_flags = cpu->flag.value;
+    uint8_t a = reg_a_value;
+    uint8_t b = added_value;
+    uint8_t c = 0;
+    if ((0x88 <= opcode && opcode <= 0x8F) || opcode == 0xCE) c = 1; // If the opcode is for ADC (0x88-0x8F) or ACI (0xCE) 
+    c *= cpu->flag.value & 1;
+
+    // S.Z.P.A.C.
+    update_flag_S(cpu);
+    update_flag_Z(cpu);
+    update_flag_P(cpu);
 
     // Set CY to 1 if overflow, otherwise 0
     if ((uint16_t)a + (uint16_t)b + c > 0xFF) curr_flags |= 0x01;
@@ -353,24 +370,9 @@ void update_flags_sub(CPU* cpu, uint8_t opcode, uint8_t reg_a_value, uint8_t add
     c *= cpu->flag.value & 1;
 
     // S.Z.P.A.C.
-    // Set Sign to 1 if negative, otherwise 0
-    if ((cpu->A.value & 0x80) == 0x80)  curr_flags |= 0x80;
-    else curr_flags &= ~0x80;
-
-    // Set Zero to 1 if equal to 0, otherwise 0
-    if (cpu->A.value == 0) curr_flags |= 0x40;
-    else curr_flags &= ~0x40;
-
-    int parity = 0;
-    int temp = cpu->A.value;
-    for (int i = 0; i <= 7; i++) {
-        parity += temp & 1;
-        temp >>= 1;
-    }
-
-    // Set Pairty to 1 if even, otherwise 0
-    if (parity % 2 == 0)  curr_flags |= 0x04;
-    else curr_flags &= ~0x04;
+    update_flag_S(cpu);
+    update_flag_Z(cpu);
+    update_flag_P(cpu);
 
     // Set CY to 1 if borrow, otherwise 0
     if (a < b + c) curr_flags |= 0x01;
