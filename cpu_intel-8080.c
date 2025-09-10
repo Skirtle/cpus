@@ -543,8 +543,12 @@ void SBI(CPU* cpu, uint8_t opcode) { // Subtract immediate from A with borrow
     if (DEBUG) printf("%sSBB %s%u\t\t%s%s// Subtract immediate value %u and borrow %u from A\n%s", OPCODE_COLOR, IMMEDIATE_COLOR, b, RESET, COMMENT_COLOR, b, c, RESET);
     update_flags_sub(cpu, opcode, a, b);
 } 
-void INR(CPU* cpu, uint8_t opcode) {} // Increment register
-void DCR(CPU* cpu, uint8_t opcode) {} // Decrement register
+void INR(CPU* cpu, uint8_t opcode) {
+    printf("%sTODO: Implement INR\n%s", RED, RESET);
+} // Increment register
+void DCR(CPU* cpu, uint8_t opcode) {
+    printf("%sTODO: Implement DNR\n%s", RED, RESET);
+} // Decrement register
 void ANA(CPU* cpu, uint8_t opcode) {} // AND register with A
 void ANI(CPU* cpu, uint8_t opcode) {} // AND immediate with A
 void ORA(CPU* cpu, uint8_t opcode) {} // OR register with A
