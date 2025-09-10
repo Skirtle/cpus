@@ -109,7 +109,16 @@ class Command:
             i_val = self.conv_hex(self.op1.lower())
             opcodes = f"{(base_opcode):02x} {i_val[2:]}"
             return opcodes.split(" ")
-        
+        elif (self.name == "CMP"):
+            base_opcode = 0b10111000
+            reg = self.get_register_hex(self.op1)
+            opcodes = f"{(base_opcode | reg):02x}"
+            return opcodes.split(" ")
+        elif (self.name == "CPI"):
+            base_opcode = 0b11111110
+            i_val = self.conv_hex(self.op1.lower())
+            opcodes = f"{(base_opcode):02x} {i_val[2:]}"
+            return opcodes.split(" ")
         
         exit(f"{self.name} is not implemented yet, exitting")
         
