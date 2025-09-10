@@ -69,12 +69,12 @@
 | DCX RP      | 00RP1011          | -       | Decrement register pair               | No          |
 | DAD RP      | 00RP1001          | C       | Add register pair to HL (16 bit add)  | No          |
 | DAA         | 00100111          | ZSPCA   | Decimal Adjust accumulator            | No          |
-| ANA S       | 10100SSS          | ZSCPA   | AND register with A                   | No          |
-| ANI #       | 11100110 db       | ZSPCA   | AND immediate with A                  | No          |
-| ORA S       | 10110SSS          | ZSPCA   | OR  register with A                   | No          |
-| ORI #       | 11110110          | ZSPCA   | OR  immediate with A                  | No          |
-| XRA S       | 10101SSS          | ZSPCA   | ExclusiveOR register with A           | No          |
-| XRI #       | 11101110 db       | ZSPCA   | ExclusiveOR immediate with A          | No          |
+| ANA S       | 10100SSS          | ZSCPA   | AND register with A                   | Yes         |
+| ANI #       | 11100110 db       | ZSPCA   | AND immediate with A                  | Yes         |
+| ORA S       | 10110SSS          | ZSPCA   | OR  register with A                   | Yes         |
+| ORI #       | 11110110          | ZSPCA   | OR  immediate with A                  | Yes         |
+| XRA S       | 10101SSS          | ZSPCA   | ExclusiveOR register with A           | Yes         |
+| XRI #       | 11101110 db       | ZSPCA   | ExclusiveOR immediate with A          | Yes         |
 | CMP S       | 10111SSS          | ZSPCA   | Compare register with A               | No          |
 | CPI #       | 11111110          | ZSPCA   | Compare immediate with A              | No          |
 | RLC         | 00000111          | C       | Rotate A left                         | No          |
