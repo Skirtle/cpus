@@ -434,8 +434,8 @@ void initialize_opcode_lookup() {
     for (int i = 0; i <= 7; i++) {
         uint8_t inr_opcode = 0b00000100 + (i << 3);
         uint8_t dcr_opcode = 0b00000101 + (i << 3);
-        opcode_lookup[inr_opcode] = (Instruction) {"", INR, 2};
-        opcode_lookup[dcr_opcode] = (Instruction) {"", DCR, 2};
+        opcode_lookup[inr_opcode] = (Instruction) {"", INR, 1};
+        opcode_lookup[dcr_opcode] = (Instruction) {"", DCR, 1};
         snprintf(opcode_lookup[inr_opcode].name, sizeof(opcode_lookup[inr_opcode].name), "INR %s", get_register_name(i));
         snprintf(opcode_lookup[dcr_opcode].name, sizeof(opcode_lookup[dcr_opcode].name), "DCR %s", get_register_name(i));
     }
@@ -554,10 +554,22 @@ void SBI(CPU* cpu, uint8_t opcode) { // Subtract immediate from A with borrow
     update_flags_sub(cpu, opcode, a, b);
 } 
 void INR(CPU* cpu, uint8_t opcode) {
-    printf("%sTODO: Implement INR\n%s", RED, RESET);
+    uint8_register* reg = get_register_ptr(cpu, (opcode >> 3) & 7);
+    reg->value++;
+    if (DEBUG) printf("%sINR %s%c\t%s\t%s// Increment register %c by 1\n%s", OPCODE_COLOR, REGISTER_COLOR, reg->name, RESET, DIM, reg->name, RESET);
+    update_flag_S(cpu);
+    update_flag_Z(cpu);
+    update_flag_P(cpu);
+    printf("%sTODO: Add flag A updating to INR\n%s", RED, RESET);
 } // Increment register
 void DCR(CPU* cpu, uint8_t opcode) {
-    printf("%sTODO: Implement DCR\n%s", RED, RESET);
+    uint8_register* reg = get_register_ptr(cpu, (opcode >> 3) & 7);
+    reg->value--;
+    if (DEBUG) printf("%sDCR %s%c\t%s\t%s// Decrement register %c by 1\n%s", OPCODE_COLOR, REGISTER_COLOR, reg->name, RESET, DIM, reg->name, RESET);
+    update_flag_S(cpu);
+    update_flag_Z(cpu);
+    update_flag_P(cpu);
+    printf("%sTODO: Add flag A updating to DCR\n%s", RED, RESET);
 } // Decrement register
 void ANA(CPU* cpu, uint8_t opcode) {} // AND register with A
 void ANI(CPU* cpu, uint8_t opcode) {} // AND immediate with A
