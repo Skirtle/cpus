@@ -430,6 +430,16 @@ void initialize_opcode_lookup() {
         snprintf(opcode_lookup[opcode].name, sizeof(opcode_lookup[opcode].name), "SBB %s", get_register_name(i));
     }
 
+    // Create all INR and DCR opcodes
+    for (int i = 0; i <= 7; i++) {
+        uint8_t inr_opcode = 0b00000100 + (i << 3);
+        uint8_t dcr_opcode = 0b00000101 + (i << 3);
+        opcode_lookup[inr_opcode] = (Instruction) {"", INR, 2};
+        opcode_lookup[dcr_opcode] = (Instruction) {"", DCR, 2};
+        snprintf(opcode_lookup[inr_opcode].name, sizeof(opcode_lookup[inr_opcode].name), "INR %s", get_register_name(i));
+        snprintf(opcode_lookup[dcr_opcode].name, sizeof(opcode_lookup[dcr_opcode].name), "DCR %s", get_register_name(i));
+    }
+
     opcode_lookup[0x00] = (Instruction) {"NOP", NOP, 1};
     opcode_lookup[0x76] = (Instruction) {"HLT", HLT, 1};
     opcode_lookup[0xC6] = (Instruction) {"ADI", ADI, 2};
