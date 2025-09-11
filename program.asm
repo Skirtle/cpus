@@ -1,3 +1,1 @@
-MVI B, 50
-MVI A, 50
-CMP B
+LXI 00, 0xFFFF

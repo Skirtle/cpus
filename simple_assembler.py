@@ -12,19 +12,19 @@ class Command:
     def generate_opcode(self):
         if (self.name == "MVI"): 
             base_opcode = 0b00000110
-            reg = self.get_register_hex(self.op1) << 3
+            reg = self.get_8bit_register_hex(self.op1) << 3
             i_val = self.conv_hex(self.op2.lower())
             opcodes = f"{(base_opcode | reg):02x} {i_val[2:]}"
             return opcodes.split(" ")
         elif (self.name == "MOV"): 
             base_opcode = 0b01000000
-            reg1 = self.get_register_hex(self.op1) << 3
-            reg2 = self.get_register_hex(self.op2)
+            reg1 = self.get_8bit_register_hex(self.op1) << 3
+            reg2 = self.get_8bit_register_hex(self.op2)
             opcodes = f"{(base_opcode | reg1 | reg2):02x}"
             return opcodes.split(" ")
         elif (self.name == "ADD"): 
             base_opcode = 0b10000000
-            reg = self.get_register_hex(self.op1)
+            reg = self.get_8bit_register_hex(self.op1)
             opcodes = f"{(base_opcode | reg):02x}"
             return opcodes.split(" ")
         elif (self.name == "ADI"): 
@@ -34,7 +34,7 @@ class Command:
             return opcodes.split(" ")
         elif (self.name == "ADC"): 
             base_opcode = 0b10001000
-            reg = self.get_register_hex(self.op1)
+            reg = self.get_8bit_register_hex(self.op1)
             opcodes = f"{(base_opcode | reg):02x}"
             return opcodes.split(" ")
         elif (self.name == "ACI"): 
@@ -49,7 +49,7 @@ class Command:
             return opcodes.split(" ")
         elif (self.name == "SUB"): 
             base_opcode = 0b10010000
-            reg = self.get_register_hex(self.op1)
+            reg = self.get_8bit_register_hex(self.op1)
             opcodes = f"{(base_opcode | reg):02x}"
             return opcodes.split(" ")
         elif (self.name == "SUI"): 
@@ -59,7 +59,7 @@ class Command:
             return opcodes.split(" ")
         elif (self.name == "SBB"): 
             base_opcode = 0b10011000
-            reg = self.get_register_hex(self.op1)
+            reg = self.get_8bit_register_hex(self.op1)
             opcodes = f"{(base_opcode | reg):02x}"
             return opcodes.split(" ")
         elif (self.name == "SBI"): 
@@ -71,17 +71,17 @@ class Command:
         elif (self.name == "HLT"): return ["76"]
         elif (self.name == "INR"): 
             base_opcode = 0b00000100
-            reg = self.get_register_hex(self.op1) << 3
+            reg = self.get_8bit_register_hex(self.op1) << 3
             opcodes = f"{(base_opcode | reg):02x}"
             return opcodes.split(" ")
         elif (self.name == "DCR"): 
             base_opcode = 0b00000101
-            reg = self.get_register_hex(self.op1) << 3
+            reg = self.get_8bit_register_hex(self.op1) << 3
             opcodes = f"{(base_opcode | reg):02x}"
             return opcodes.split(" ")
         elif (self.name == "ANA"): 
             base_opcode = 0b10100000
-            reg = self.get_register_hex(self.op1)
+            reg = self.get_8bit_register_hex(self.op1)
             opcodes = f"{(base_opcode | reg):02x}"
             return opcodes.split(" ")
         elif (self.name == "ANI"): 
@@ -91,7 +91,7 @@ class Command:
             return opcodes.split(" ")
         elif (self.name == "ORA"): 
             base_opcode = 0b10110000
-            reg = self.get_register_hex(self.op1)
+            reg = self.get_8bit_register_hex(self.op1)
             opcodes = f"{(base_opcode | reg):02x}"
             return opcodes.split(" ")
         elif (self.name == "ORI"): 
@@ -101,7 +101,7 @@ class Command:
             return opcodes.split(" ")
         elif (self.name == "XRA"): 
             base_opcode = 0b10101000
-            reg = self.get_register_hex(self.op1)
+            reg = self.get_8bit_register_hex(self.op1)
             opcodes = f"{(base_opcode | reg):02x}"
             return opcodes.split(" ")
         elif (self.name == "XRI"): 
@@ -111,7 +111,7 @@ class Command:
             return opcodes.split(" ")
         elif (self.name == "CMP"):
             base_opcode = 0b10111000
-            reg = self.get_register_hex(self.op1)
+            reg = self.get_8bit_register_hex(self.op1)
             opcodes = f"{(base_opcode | reg):02x}"
             return opcodes.split(" ")
         elif (self.name == "CPI"):
@@ -120,9 +120,15 @@ class Command:
             opcodes = f"{(base_opcode):02x} {i_val[2:]}"
             return opcodes.split(" ")
         
+        elif (self.name == "LXI"): 
+            # LXI RP,#	00RP0001 lb hb, Load register pair immediate
+            base_opcode = 0b00000001
+            reg_pair = self.op2
+            
+        
         exit(f"{self.name} is not implemented yet, exitting")
         
-    def get_register_hex(self, name):
+    def get_8bit_register_hex(self, name):
         names = { "B": 0, "C": 1, "D": 2, "E": 3, "H": 4, "L": 5, "M": 6, "A": 7 }
         return names[name]
     
