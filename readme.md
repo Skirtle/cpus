@@ -75,8 +75,8 @@
 | ORI #       | 11110110          | ZSPCA   | OR  immediate with A                  | Yes         |
 | XRA S       | 10101SSS          | ZSPCA   | ExclusiveOR register with A           | Yes         |
 | XRI #       | 11101110 db       | ZSPCA   | ExclusiveOR immediate with A          | Yes         |
-| CMP S       | 10111SSS          | ZSPCA   | Compare register with A               | No          |
-| CPI #       | 11111110          | ZSPCA   | Compare immediate with A              | No          |
+| CMP S       | 10111SSS          | ZSPCA   | Compare register with A               | Yes         |
+| CPI #       | 11111110          | ZSPCA   | Compare immediate with A              | Yes         |
 | RLC         | 00000111          | C       | Rotate A left                         | No          |
 | RRC         | 00001111          | C       | Rotate A right                        | No          |
 | RAL         | 00010111          | C       | Rotate A left through carry           | No          |
