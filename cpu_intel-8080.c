@@ -293,6 +293,28 @@ char* get_register_name(uint8_t reg) {
     char* names[] = {"B", "C", "D", "E", "H", "L", "M", "A"};
     return names[reg & 7];
 }
+uint8_t get_flag_S(CPU* cpu) { // Sign
+    // Set Sign to 1 if negative, otherwise 0
+    if ((cpu->A.value & 0x80) == 0x80)  return 0x80;
+    return 0;
+}
+uint8_t get_flag_Z(CPU* cpu) { // Zero
+    // Set Zero to 1 if equal to 0, otherwise 0
+    if (cpu->A.value == 0) return 0x40;
+    return 0;
+}
+uint8_t get_flag_P(CPU* cpu) { // Parity
+    int parity = 0;
+    int temp = cpu->A.value;
+    for (int i = 0; i <= 7; i++) {
+        parity += temp & 1;
+        temp >>= 1;
+    }
+
+    // Set Pairty to 1 if even number of bits, otherwise 0
+    if (parity % 2 == 0)  return 0x04;
+    return 0;
+}
 
 // Updating registers
 void update_uint16_registers(CPU* cpu) {
@@ -316,28 +338,6 @@ void update_uint8_registers(CPU* cpu) {
 }
 
 // Updating flags SZ0A0P1C
-uint8_t get_flag_S(CPU* cpu) { // Sign
-    // Set Sign to 1 if negative, otherwise 0
-    if ((cpu->A.value & 0x80) == 0x80)  return 0x80;
-    return 0;
-}
-uint8_t get_flag_Z(CPU* cpu) { // Zero
-    // Set Zero to 1 if equal to 0, otherwise 0
-    if (cpu->A.value == 0) return 0x40;
-    return 0;
-}
-uint8_t get_flag_P(CPU* cpu) { // Parity
-    int parity = 0;
-    int temp = cpu->A.value;
-    for (int i = 0; i <= 7; i++) {
-        parity += temp & 1;
-        temp >>= 1;
-    }
-
-    // Set Pairty to 1 if even number of bits, otherwise 0
-    if (parity % 2 == 0)  return 0x04;
-    return 0;
-}
 void update_flag_S(CPU* cpu) {
     // Set Sign to 1 if negative, otherwise 0
     if ((cpu->A.value & 0x80) == 0x80)  cpu->flag.value |= 0x80;
@@ -541,7 +541,6 @@ void MVI(CPU* cpu, uint8_t opcode) {
     // Now to update any potential register pairs that could of changed from this
     // Only need to change if the register is B, C, D, E, H, or L. Which is most of them.
     update_uint16_registers(cpu);
-
 }
 
 // Arithmetic and logic opcodes (8-bit only)
@@ -552,6 +551,7 @@ void ADD(CPU* cpu, uint8_t opcode) { // Add register to A
     cpu->A.value += reg->value;
     if (DEBUG) printf("%sADD %s%c\t%s\t%s// Add value %d from register %c to A\n%s", OPCODE_COLOR, REGISTER_COLOR, reg->name, RESET, DIM, reg->value, reg->name, RESET);
     update_flags_add(cpu, opcode, a, reg->value);
+    update_uint16_registers(cpu);
 }
 void ADI(CPU* cpu, uint8_t opcode) { // Add immediate to A
     uint8_t a = cpu->A.value;
@@ -559,6 +559,7 @@ void ADI(CPU* cpu, uint8_t opcode) { // Add immediate to A
     cpu->A.value += b;
     if (DEBUG) printf("%sADI %s%u\t%s\t%s// Add immediate value %u to A\n%s", OPCODE_COLOR, IMMEDIATE_COLOR, b, RESET, DIM, b, RESET);
     update_flags_add(cpu, opcode, a, b);
+    update_uint16_registers(cpu);
 } 
 void ADC(CPU* cpu, uint8_t opcode) { // Add register to A with carry
     uint8_register* reg = get_register_ptr(cpu, opcode & 7);
@@ -568,6 +569,7 @@ void ADC(CPU* cpu, uint8_t opcode) { // Add register to A with carry
     cpu->A.value = a + b + c;
     if (DEBUG) printf("%sADC %s%c\t%s\t%s// Add value %d and carry %d from register %c to A\n%s", OPCODE_COLOR, REGISTER_COLOR, reg->name, RESET, DIM, reg->value, c, reg->name, RESET);
     update_flags_add(cpu, opcode, a, reg->value);
+    update_uint16_registers(cpu);
 } 
 void ACI(CPU* cpu, uint8_t opcode) { // Add immediate to A with carry
     uint8_t a = cpu->A.value;
@@ -576,6 +578,7 @@ void ACI(CPU* cpu, uint8_t opcode) { // Add immediate to A with carry
     cpu->A.value += b + c;
     if (DEBUG) printf("%sACI %s%u\t%s\t%s// Add immediate value %u and carry %d to A\n%s", OPCODE_COLOR, IMMEDIATE_COLOR, b, RESET, DIM, b, c, RESET);
     update_flags_add(cpu, opcode, a, b);
+    update_uint16_registers(cpu);
 }
 void SUB(CPU* cpu, uint8_t opcode) { // Subtract register from A
     uint8_register* reg = get_register_ptr(cpu, opcode & 7);
@@ -584,6 +587,7 @@ void SUB(CPU* cpu, uint8_t opcode) { // Subtract register from A
     cpu->A.value -= reg->value;
     if (DEBUG) printf("%sSUB %s%c\t\t%s%s// Subtract value %d from register %c from A\n%s", OPCODE_COLOR, REGISTER_COLOR, reg->name, RESET, COMMENT_COLOR, reg->value, reg->name, RESET);
     update_flags_sub(cpu, opcode, a, reg->value);
+    update_uint16_registers(cpu);
 } 
 void SUI(CPU* cpu, uint8_t opcode) { // Subtract immediate from A
     uint8_t a = cpu->A.value;
@@ -591,6 +595,7 @@ void SUI(CPU* cpu, uint8_t opcode) { // Subtract immediate from A
     cpu->A.value -= b;
     if (DEBUG) printf("%sSUI %s%u\t\t%s%s// Subtract immediate value %u from A\n%s", OPCODE_COLOR, IMMEDIATE_COLOR, b, RESET, COMMENT_COLOR, b, RESET);
     update_flags_sub(cpu, opcode, a, b);
+    update_uint16_registers(cpu);
 } 
 void SBB(CPU* cpu, uint8_t opcode) { // Subtract register from A with borrow
     uint8_register* reg = get_register_ptr(cpu, opcode & 7);
@@ -600,6 +605,7 @@ void SBB(CPU* cpu, uint8_t opcode) { // Subtract register from A with borrow
     cpu->A.value = a - b - c;
     if (DEBUG) printf("%sSBB %s%c\t\t%s%s// Subtract value %d and borrow %d from register %c from A\n%s", OPCODE_COLOR, REGISTER_COLOR, reg->name, RESET, COMMENT_COLOR, reg->value, c, reg->name, RESET);
     update_flags_sub(cpu, opcode, a, reg->value);
+    update_uint16_registers(cpu);
 } 
 void SBI(CPU* cpu, uint8_t opcode) { // Subtract immediate from A with borrow
     uint8_t a = cpu->A.value;
@@ -608,6 +614,7 @@ void SBI(CPU* cpu, uint8_t opcode) { // Subtract immediate from A with borrow
     cpu->A.value -= b - c;
     if (DEBUG) printf("%sSBB %s%u\t\t%s%s// Subtract immediate value %u and borrow %u from A\n%s", OPCODE_COLOR, IMMEDIATE_COLOR, b, RESET, COMMENT_COLOR, b, c, RESET);
     update_flags_sub(cpu, opcode, a, b);
+    update_uint16_registers(cpu);
 } 
 void INR(CPU* cpu, uint8_t opcode) { // Increment register
     uint8_register* reg = get_register_ptr(cpu, (opcode >> 3) & 7);
@@ -618,16 +625,18 @@ void INR(CPU* cpu, uint8_t opcode) { // Increment register
     update_flag_P(cpu);
     if (reg->value - 1 == 0x0F) { cpu->flag.value |= 0x10; } // carry = true
     else { cpu->flag.value &= ~ 0x10; } // carry = false
+    update_uint16_registers(cpu);
 }
 void DCR(CPU* cpu, uint8_t opcode) { // Decrement register
     uint8_register* reg = get_register_ptr(cpu, (opcode >> 3) & 7);
     reg->value--;
-    if (DEBUG) printf("%sDCR %s%c\t%s\t%s// Decrement register %c\n%s", OPCODE_COLOR, REGISTER_COLOR, reg->name, RESET, DIM, reg->name, RESET);
     update_flag_S(cpu);
     update_flag_Z(cpu);
     update_flag_P(cpu);
     if (reg->value + 1 == 0x10) {cpu->flag.value |= 0x10; } // borrow = true
     else {cpu->flag.value &= ~0x10; } // borrow = false
+    update_uint16_registers(cpu);
+    if (DEBUG) printf("%sDCR %s%c\t%s\t%s// Decrement register %c\n%s", OPCODE_COLOR, REGISTER_COLOR, reg->name, RESET, DIM, reg->name, RESET);
 }
 void ANA(CPU* cpu, uint8_t opcode) { // AND register with A
     uint8_register* reg = get_register_ptr(cpu, opcode & 7);
@@ -637,6 +646,7 @@ void ANA(CPU* cpu, uint8_t opcode) { // AND register with A
     update_flag_P(cpu);
     cpu->flag.value &= ~0x01; // CY = 0, always
     cpu->flag.value |= 0x10; // AC = 1 for ANA/ANI only
+    update_uint16_registers(cpu);
     if (DEBUG) printf("%sANA %s%c\t\t%s%s// Logical AND register %c with register A\n%s", OPCODE_COLOR, REGISTER_COLOR, reg->name, RESET, COMMENT_COLOR, reg->name, RESET);
 }
 void ANI(CPU* cpu, uint8_t opcode) { // AND immediate with A
@@ -647,6 +657,7 @@ void ANI(CPU* cpu, uint8_t opcode) { // AND immediate with A
     update_flag_P(cpu);
     cpu->flag.value &= ~0x01; // CY = 0, always
     cpu->flag.value |= 0x10; // AC = 1 for ANA/ANI only
+    update_uint16_registers(cpu);
     if (DEBUG) printf("%sANI %s%u\t\t%s%s// Logical AND immediate %u with register A\n%s", OPCODE_COLOR, REGISTER_COLOR, val, RESET, COMMENT_COLOR, val, RESET);
 }
 void ORA(CPU* cpu, uint8_t opcode) { // OR register with A
@@ -656,6 +667,7 @@ void ORA(CPU* cpu, uint8_t opcode) { // OR register with A
     update_flag_Z(cpu);
     update_flag_P(cpu);
     cpu->flag.value &= ~0x11; // CY = AC = 0
+    update_uint16_registers(cpu);
     if (DEBUG) printf("%sORA %s%c\t\t%s%s// Logical OR register %c with register A\n%s", OPCODE_COLOR, REGISTER_COLOR, reg->name, RESET, COMMENT_COLOR, reg->name, RESET);
 }
 void ORI(CPU* cpu, uint8_t opcode) { // OR immediate with A
@@ -665,6 +677,7 @@ void ORI(CPU* cpu, uint8_t opcode) { // OR immediate with A
     update_flag_Z(cpu);
     update_flag_P(cpu);
     cpu->flag.value &= ~0x11; // CY = AC = 0
+    update_uint16_registers(cpu);
     if (DEBUG) printf("%sORI %s%u\t\t%s%s// Logical OR immediate %u with register A\n%s", OPCODE_COLOR, REGISTER_COLOR, val, RESET, COMMENT_COLOR, val, RESET);
 }
 void XRA(CPU* cpu, uint8_t opcode) { // Exclusive OR register with A
@@ -674,6 +687,7 @@ void XRA(CPU* cpu, uint8_t opcode) { // Exclusive OR register with A
     update_flag_Z(cpu);
     update_flag_P(cpu);
     cpu->flag.value &= ~0x11; // CY = AC = 0
+    update_uint16_registers(cpu);
     if (DEBUG) printf("%sXRA %s%c\t\t%s%s// Logical OR register %c with register A\n%s", OPCODE_COLOR, REGISTER_COLOR, reg->name, RESET, COMMENT_COLOR, reg->name, RESET);
 }
 void XRI(CPU* cpu, uint8_t opcode) { // Exclusive OR immediate with A
@@ -683,6 +697,7 @@ void XRI(CPU* cpu, uint8_t opcode) { // Exclusive OR immediate with A
     update_flag_Z(cpu);
     update_flag_P(cpu);
     cpu->flag.value &= ~0x11; // CY = AC = 0
+    update_uint16_registers(cpu);
     if (DEBUG) printf("%sXRI %s%u\t\t%s%s// Logical OR immediate %u with register A\n%s", OPCODE_COLOR, REGISTER_COLOR, val, RESET, COMMENT_COLOR, val, RESET);
 }
 void CMP(CPU* cpu, uint8_t opcode) { // Compare register with A
@@ -692,6 +707,7 @@ void CMP(CPU* cpu, uint8_t opcode) { // Compare register with A
     cpu->A.value -= reg->value;
     update_flags_sub(cpu, opcode, a, reg->value);
     cpu->A.value = a;
+    update_uint16_registers(cpu);
     if (DEBUG) printf("%sCMP %s%c\t\t%s%s// Compare value %d from register %c to A\n%s", OPCODE_COLOR, REGISTER_COLOR, reg->name, RESET, COMMENT_COLOR, reg->value, reg->name, RESET);
 }
 void CPI(CPU* cpu, uint8_t opcode) { // Compare immediate with A
@@ -700,6 +716,7 @@ void CPI(CPU* cpu, uint8_t opcode) { // Compare immediate with A
     cpu->A.value -= b;
     update_flags_sub(cpu, opcode, a, b);
     cpu->A.value = a;
+    update_uint16_registers(cpu);
     if (DEBUG) printf("%sCPI %s%u\t\t%s%s// Compare immediate value %u to A\n%s", OPCODE_COLOR, IMMEDIATE_COLOR, b, RESET, COMMENT_COLOR, b, RESET);
 }
 

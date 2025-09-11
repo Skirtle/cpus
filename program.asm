@@ -1,6 +1,3 @@
 MVI B, 50
 MVI A, 50
-OUT 3
 CMP B
-OUT 1
-OUT 3
