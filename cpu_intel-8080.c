@@ -62,6 +62,9 @@ void print_states_and_flags(CPU* cpu);
 char* get_register_name(uint8_t reg);
 int initialize_cpu(CPU* cpu, char* filename);
 uint8_t fetch(CPU* cpu);
+uint8_t get_flag_S(CPU* cpu); // Sign
+uint8_t get_flag_Z(CPU* cpu); // Zero
+uint8_t get_flag_P(CPU* cpu); // Parity
 uint8_register* get_register_ptr(CPU* cpu, uint8_t reg);
 
 
@@ -313,17 +316,39 @@ void update_uint8_registers(CPU* cpu) {
 }
 
 // Updating flags SZ0A0P1C
-void update_flag_S(CPU* cpu) { // Sign
+uint8_t get_flag_S(CPU* cpu) { // Sign
+    // Set Sign to 1 if negative, otherwise 0
+    if ((cpu->A.value & 0x80) == 0x80)  return 0x80;
+    return 0;
+}
+uint8_t get_flag_Z(CPU* cpu) { // Zero
+    // Set Zero to 1 if equal to 0, otherwise 0
+    if (cpu->A.value == 0) return 0x40;
+    return 0;
+}
+uint8_t get_flag_P(CPU* cpu) { // Parity
+    int parity = 0;
+    int temp = cpu->A.value;
+    for (int i = 0; i <= 7; i++) {
+        parity += temp & 1;
+        temp >>= 1;
+    }
+
+    // Set Pairty to 1 if even number of bits, otherwise 0
+    if (parity % 2 == 0)  return 0x04;
+    return 0;
+}
+void update_flag_S(CPU* cpu) {
     // Set Sign to 1 if negative, otherwise 0
     if ((cpu->A.value & 0x80) == 0x80)  cpu->flag.value |= 0x80;
-    else cpu->flag.value &= ~0x80;
+    cpu->flag.value &= ~0x80;
 }
-void update_flag_Z(CPU* cpu) { // Zero
+void update_flag_Z(CPU* cpu) {
     // Set Zero to 1 if equal to 0, otherwise 0
     if (cpu->A.value == 0) cpu->flag.value |= 0x40;
-    else cpu->flag.value &= ~0x40;
+    cpu->flag.value &= ~0x40;
 }
-void update_flag_P(CPU* cpu) { // Parity
+void update_flag_P(CPU* cpu) {
     int parity = 0;
     int temp = cpu->A.value;
     for (int i = 0; i <= 7; i++) {
@@ -333,7 +358,7 @@ void update_flag_P(CPU* cpu) { // Parity
 
     // Set Pairty to 1 if even number of bits, otherwise 0
     if (parity % 2 == 0)  cpu->flag.value |= 0x04;
-    else cpu->flag.value &= ~0x04;
+    cpu->flag.value &= ~0x04;
 }
 void update_flags_add(CPU* cpu, uint8_t opcode, uint8_t reg_a_value, uint8_t added_value) {
     uint8_t curr_flags = cpu->flag.value;
@@ -344,9 +369,9 @@ void update_flags_add(CPU* cpu, uint8_t opcode, uint8_t reg_a_value, uint8_t add
     c *= cpu->flag.value & 1;
 
     // S.Z.P.A.C.
-    update_flag_S(cpu);
-    update_flag_Z(cpu);
-    update_flag_P(cpu);
+    get_flag_S(cpu);
+    get_flag_Z(cpu);
+    get_flag_P(cpu);
 
     // Set CY to 1 if overflow, otherwise 0
     if ((uint16_t)a + (uint16_t)b + c > 0xFF) curr_flags |= 0x01;
@@ -367,9 +392,11 @@ void update_flags_sub(CPU* cpu, uint8_t opcode, uint8_t reg_a_value, uint8_t add
     c *= cpu->flag.value & 1;
 
     // S.Z.P.A.C.
-    update_flag_S(cpu);
-    update_flag_Z(cpu);
-    update_flag_P(cpu);
+    uint8_t s_flag = get_flag_S(cpu);
+    uint8_t z_flag = get_flag_Z(cpu);
+    uint8_t p_flag = get_flag_P(cpu);
+
+    curr_flags = curr_flags | s_flag | z_flag | p_flag;
 
     // Set CY to 1 if borrow, otherwise 0
     if (a < b + c) curr_flags |= 0x01;
@@ -377,7 +404,7 @@ void update_flags_sub(CPU* cpu, uint8_t opcode, uint8_t reg_a_value, uint8_t add
 
     // Set AC to 1 if nibble borrow, otherwise 0
     if ((a & 0x0F) < ((b + c) & 0x0F)) curr_flags |= 0x10;
-    else curr_flags &= ~ 0x10;
+    else curr_flags &= ~0x10;
 
     cpu->flag.value = curr_flags;
 }
@@ -658,12 +685,23 @@ void XRI(CPU* cpu, uint8_t opcode) { // Exclusive OR immediate with A
     cpu->flag.value &= ~0x11; // CY = AC = 0
     if (DEBUG) printf("%sXRI %s%u\t\t%s%s// Logical OR immediate %u with register A\n%s", OPCODE_COLOR, REGISTER_COLOR, val, RESET, COMMENT_COLOR, val, RESET);
 }
-void CMP(CPU* cpu, uint8_t opcode) {
-    if (DEBUG) printf("%sTODO: Add CMP\n%s", RED, RESET);
-} // Compare register with A
-void CPI(CPU* cpu, uint8_t opcode) {
-    if (DEBUG) printf("%sTODO: Add CPI\n%s", RED, RESET);
-} // Compare immediate with A
+void CMP(CPU* cpu, uint8_t opcode) { // Compare register with A
+    uint8_register* reg = get_register_ptr(cpu, opcode & 7);
+    uint8_t a = cpu->A.value;
+    uint8_t b = reg->value;
+    cpu->A.value -= reg->value;
+    update_flags_sub(cpu, opcode, a, reg->value);
+    cpu->A.value = a;
+    if (DEBUG) printf("%sCMP %s%c\t\t%s%s// Compare value %d from register %c to A\n%s", OPCODE_COLOR, REGISTER_COLOR, reg->name, RESET, COMMENT_COLOR, reg->value, reg->name, RESET);
+}
+void CPI(CPU* cpu, uint8_t opcode) { // Compare immediate with A
+    uint8_t a = cpu->A.value;
+    uint8_t b = cpu->memory[cpu->program_counter + 1];
+    cpu->A.value -= b;
+    update_flags_sub(cpu, opcode, a, b);
+    cpu->A.value = a;
+    if (DEBUG) printf("%sCPI %s%u\t\t%s%s// Compare immediate value %u to A\n%s", OPCODE_COLOR, IMMEDIATE_COLOR, b, RESET, COMMENT_COLOR, b, RESET);
+}
 
 // Input and output
 void OUT(CPU* cpu, uint8_t opcode) { // Write A to output port
